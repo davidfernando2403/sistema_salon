@@ -1,0 +1,43 @@
+
+<h2>Servicios</h2>
+
+<h3>Agregar servicio</h3>
+<form method="POST" action="/servicios/agregar">
+    <input name="nombre" placeholder="Nombre del servicio" required>
+    <button>Agregar</button>
+</form>
+
+<hr>
+<a href="/">⬅ Volver</a>
+<hr>
+<h3>Lista de servicios</h3>
+
+
+<table border="1">
+<tr>
+    <th>Nombre</th>
+    <th>Editar</th>
+    <th>Eliminar</th>
+</tr>
+
+{% for s in servicios %}
+<tr>
+    <td>{{ s.nombre }}</td>
+
+    <td>
+        <form method="POST" action="/servicios/editar/{{s.id}}">
+            <input name="nombre" value="{{s.nombre}}">
+            <button>Guardar</button>
+        </form>
+    </td>
+
+    <td>
+        <a href="/servicios/eliminar/{{s.id}}">Eliminar</a>
+    </td>
+</tr>
+{% endfor %}
+
+</table>
+
+<br>
+<a href="/">⬅ Volver</a>

@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Administración de Trabajadoras</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+</head>
+<body class="bg-light">
+<div class="container mt-4">
+
+<h3 class="mb-3">👩‍🔧 Administración de Trabajadoras</h3>
+<a href="/" class="btn btn-secondary mb-3">
+⬅ Volver al inicio
+</a>
+<!-- ===== NUEVA TRABAJADORA ===== -->
+
+<div class="card shadow-sm mb-4">
+<div class="card-header bg-success text-white">
+➕ Nueva trabajadora
+</div>
+
+<div class="card-body">
+
+<form method="POST" class="row g-3">
+
+<input type="hidden" name="accion" value="crear">
+
+<div class="col-md-3">
+<label class="form-label">Nombre</label>
+<input class="form-control" name="nombre" required>
+</div>
+
+<div class="col-md-2">
+<label class="form-label">Tipo pago</label>
+<select class="form-select" name="tipo_pago" id="tipo_pago">
+<option value="fijo">Fijo</option>
+<option value="porcentaje">Porcentaje</option>
+<option value="meta">Meta</option>
+</select>
+</div>
+
+<!-- SUELDO -->
+<div class="col-md-2" id="grupo_sueldo">
+<label class="form-label">Sueldo</label>
+<input class="form-control" name="sueldo_base">
+</div>
+
+<!-- COMISION SIMPLE -->
+<div class="col-md-2" id="grupo_comision">
+<label class="form-label">Comisión %</label>
+<input class="form-control" name="comision">
+</div>
+
+<!-- META -->
+<div class="col-md-2 d-none" id="grupo_meta1">
+<label class="form-label">Meta 1</label>
+<input class="form-control" name="meta_1">
+</div>
+
+<div class="col-md-2 d-none" id="grupo_com_meta1">
+<label class="form-label">Comisión M1</label>
+<input class="form-control" name="comision_meta_1">
+</div>
+
+<div class="col-md-2 d-none" id="grupo_meta2">
+<label class="form-label">Meta 2</label>
+<input class="form-control" name="meta_2">
+</div>
+
+<div class="col-md-2 d-none" id="grupo_com_meta2">
+<label class="form-label">Comisión M2</label>
+<input class="form-control" name="comision_meta_2">
+</div>
+
+<div class="col-md-3 d-flex align-items-end">
+<button class="btn btn-success w-100">Crear</button>
+</div>
+
+</form>
+
+<script>
+const tipoPago = document.getElementById("tipo_pago")
+
+const sueldo = document.getElementById("grupo_sueldo")
+const comision = document.getElementById("grupo_comision")
+
+const meta1 = document.getElementById("grupo_meta1")
+const comMeta1 = document.getElementById("grupo_com_meta1")
+const meta2 = document.getElementById("grupo_meta2")
+const comMeta2 = document.getElementById("grupo_com_meta2")
+
+function actualizarFormulario() {
+
+    const tipo = tipoPago.value
+
+    // ocultar todo
+    sueldo.classList.add("d-none")
+    comision.classList.add("d-none")
+    meta1.classList.add("d-none")
+    comMeta1.classList.add("d-none")
+    meta2.classList.add("d-none")
+    comMeta2.classList.add("d-none")
+
+    if (tipo === "fijo") {
+        sueldo.classList.remove("d-none")
+    }
+
+    if (tipo === "porcentaje") {
+        comision.classList.remove("d-none")
+    }
+
+    if (tipo === "meta") {
+        sueldo.classList.remove("d-none")
+        meta1.classList.remove("d-none")
+        comMeta1.classList.remove("d-none")
+        meta2.classList.remove("d-none")
+        comMeta2.classList.remove("d-none")
+    }
+}
+
+// inicial
+actualizarFormulario()
+
+tipoPago.addEventListener("change", actualizarFormulario)
+</script>
+
+</div>
+</div>
+
+<!-- ===== LISTA ===== -->
+
+<div class="card shadow-sm">
+
+<div class="card-header bg-primary text-white">
+📋 Trabajadoras registradas
+</div>
+
+<div class="card-body">
+
+<table class="table table-hover">
+
+<tr>
+<th>Nombre</th>
+<th>Estado</th>
+<th>Tipo</th>
+<th></th>
+</tr>
+
+{% for t in trabajadoras %}
+<tr {% if t_edit and t.id==t_edit.id %}class="table-warning"{% endif %}>
+
+<td>{{ t.nombre }}</td>
+
+<td>
+{% if t.activo %}
+<span class="badge bg-success">Activo</span>
+{% else %}
+<span class="badge bg-secondary">Inactivo</span>
+{% endif %}
+</td>
+
+<td>{{ t.tipo_pago }}</td>
+
+<td>
+<a href="/admin/trabajadoras?edit={{ t.id }}" class="btn btn-sm btn-outline-primary">
+Editar
+</a>
+</td>
+
+</tr>
+{% endfor %}
+
+</table>
+
+</div>
+</div>
+
+<!-- ===== EDITAR ===== -->
+
+{% if t_edit %}
+
+<div class="card shadow-sm mt-4 border-warning">
+
+<div class="card-header bg-warning">
+✏ Editando: {{ t_edit.nombre }}
+</div>
+
+<div class="card-body">
+
+<form method="POST" class="row g-3">
+
+<input type="hidden" name="id" value="{{ t_edit.id }}">
+<input type="hidden" name="accion" value="editar">
+
+<div class="col-md-4">
+<label class="form-label">Nombre</label>
+<input class="form-control" name="nombre" value="{{ t_edit.nombre }}">
+</div>
+
+<div class="col-md-2">
+<label class="form-label">Tipo</label>
+<select class="form-select" name="tipo_pago">
+<option value="fijo" {% if t_edit.tipo_pago=="fijo" %}selected{% endif %}>Fijo</option>
+<option value="porcentaje" {% if t_edit.tipo_pago=="porcentaje" %}selected{% endif %}>Porcentaje</option>
+<option value="meta" {% if t_edit.tipo_pago=="meta" %}selected{% endif %}>Meta</option>
+</select>
+</div>
+
+<div class="col-md-2">
+<label class="form-label">Sueldo</label>
+<input class="form-control" name="sueldo_base" value="{{ t_edit.sueldo_base }}">
+</div>
+
+<div class="col-md-2">
+<label class="form-label">Comisión</label>
+<input class="form-control" name="comision" value="{{ t_edit.comision }}">
+</div>
+
+<div class="col-md-2">
+<label class="form-label">Meta 1</label>
+<input class="form-control" name="meta_1" value="{{ t_edit.meta_1 }}">
+</div>
+
+<div class="col-md-2">
+<label class="form-label">Comisión M1</label>
+<input class="form-control" name="comision_meta_1" value="{{ t_edit.comision_meta_1 }}">
+</div>
+
+<div class="col-md-2">
+<label class="form-label">Meta 2</label>
+<input class="form-control" name="meta_2" value="{{ t_edit.meta_2 }}">
+</div>
+
+<div class="col-md-2">
+<label class="form-label">Comisión M2</label>
+<input class="form-control" name="comision_meta_2" value="{{ t_edit.comision_meta_2 }}">
+</div>
+
+<div class="col-md-3 form-check mt-4">
+<input class="form-check-input" type="checkbox" name="activo" {% if t_edit.activo %}checked{% endif %}>
+<label class="form-check-label">Trabajadora activa</label>
+</div>
+
+<div class="col-md-2">
+<label>L–V</label>
+<input type="time" name="hora_semana"
+class="form-control"
+value="{{ t_edit.hora_semana }}">
+</div>
+
+<div class="col-md-2">
+<label>Sábado</label>
+<input type="time" name="hora_sabado"
+class="form-control"
+value="{{ t_edit.hora_sabado }}">
+</div>
+
+<div class="col-md-12">
+<button class="btn btn-warning">Guardar cambios</button>
+<a href="/admin/trabajadoras" class="btn btn-secondary">Cancelar</a>
+</div>
+
+</form>
+
+</div>
+</div>
+<hr>
+
+<h5>🔄 Recalcular comisiones</h5>
+
+<form method="POST" action="/admin/recalcular_comisiones" class="row g-3">
+
+<div class="col-md-3">
+<label>Desde fecha</label>
+<input type="date" name="desde" class="form-control" required>
+</div>
+
+<div class="col-md-3 d-flex align-items-end">
+<button class="btn btn-danger w-100">
+Preview recalculo
+</button>
+</div>
+
+</form>
+{% endif %}
+
+</div>
+</body>
+</html>

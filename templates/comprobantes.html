@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Comprobantes</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-light">
+
+<div class="container mt-4">
+
+<h2>🧾 Boletas / Facturas</h2>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% for c,m in messages %}
+<div class="alert alert-{{c}}">{{m}}</div>
+{% endfor %}
+{% endwith %}
+
+<form method="POST" class="row g-2 mb-4">
+
+<div class="col-md-2">
+<select name="tipo" class="form-control">
+<option value="boleta">Boleta</option>
+<option value="factura">Factura</option>
+</select>
+</div>
+
+<div class="col-md-3">
+<input name="codigo" class="form-control" placeholder="Código" required>
+</div>
+
+<div class="col-md-2">
+<input name="monto" type="number" step="0.01" class="form-control" placeholder="Monto" required>
+</div>
+
+<div class="col-md-3">
+<input name="fecha" type="date" class="form-control" required>
+</div>
+
+<div class="col-md-2">
+<button class="btn btn-primary w-100">Guardar</button>
+</div>
+
+</form>
+
+<h4>Boletas</h4>
+
+<table class="table table-bordered">
+<tr><th>Fecha</th><th>Código</th><th>Monto</th></tr>
+{% for b in boletas %}
+<tr><td>{{b.fecha}}</td><td>{{b.codigo}}</td><td>S/ {{b.monto}}</td></tr>
+{% endfor %}
+</table>
+
+<h4>Facturas</h4>
+
+<table class="table table-bordered">
+<tr><th>Fecha</th><th>Código</th><th>Monto</th></tr>
+{% for f in facturas %}
+<tr><td>{{f.fecha}}</td><td>{{f.codigo}}</td><td>S/ {{f.monto}}</td></tr>
+{% endfor %}
+</table>
+
+<a href="/" class="btn btn-dark">⬅ Volver</a>
+
+</div>
+
+</body>
+</html>

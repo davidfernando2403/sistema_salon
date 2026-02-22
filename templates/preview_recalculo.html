@@ -1,0 +1,41 @@
+<div class="container mt-4">
+
+<h4>Preview recalculo</h4>
+
+<form method="POST" action="/admin/aplicar_recalculo">
+
+<input type="hidden" name="desde" value="{{ desde }}">
+
+<table class="table table-sm">
+
+<tr>
+<th>Venta</th>
+<th>Trabajadora</th>
+<th>Fecha</th>
+<th>Precio</th>
+<th>Nueva comisión</th>
+</tr>
+
+{% for c in cambios %}
+<tr>
+<td>{{ c.venta }}</td>
+<td>{{ c.trabajadora }}</td>
+<td>{{ c.fecha }}</td>
+<td>{{ c.precio }}</td>
+<td>{{ c.nueva_comision }}</td>
+</tr>
+{% endfor %}
+
+</table>
+
+<button class="btn btn-danger">
+Aplicar recalculo
+</button>
+
+<a href="/admin/trabajadoras" class="btn btn-secondary">
+Cancelar
+</a>
+
+</form>
+
+</div>

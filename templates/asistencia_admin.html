@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Asistencia Admin</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-light">
+
+<div class="container mt-4">
+
+<h2>🕒 Asistencias</h2>
+<a href="/" class="btn btn-dark">⬅ Volver</a>
+
+<div class="alert alert-info">
+
+📌 Mostrando:
+
+{% if trabajadora_id %}
+    {% for t in trabajadoras %}
+        {% if t.id|string == trabajadora_id %}
+            <b>{{ t.nombre }}</b>
+        {% endif %}
+    {% endfor %}
+{% else %}
+    <b>Todas</b>
+{% endif %}
+
+—
+
+{% if mes_sel %}
+    {% set partes = mes_sel.split('-') %}
+    {% set anio = partes[0] %}
+    {% set mes = partes[1]|int %}
+
+    {% set nombres_meses = [
+        "", "Enero", "Febrero", "Marzo", "Abril", "Mayo",
+        "Junio", "Julio", "Agosto", "Septiembre",
+        "Octubre", "Noviembre", "Diciembre"
+    ] %}
+
+    <b>{{ nombres_meses[mes] }} {{ anio }}</b>
+{% else %}
+    <b>Mes actual</b>
+{% endif %}
+
+—
+
+{% if quincena == "1" %}
+    <b>Quincena 1 (1–15)</b>
+{% elif quincena == "2" %}
+    <b>Quincena 2 (16–fin)</b>
+{% else %}
+    <b>Mes completo</b>
+{% endif %}
+
+</div>
+
+<form method="GET" class="row mb-3">
+
+<div class="col-md-4">
+<input type="month" name="mes" class="form-control" value="{{ mes_sel or '' }}">
+</div>
+
+<div class="col-md-4">
+<select name="trabajadora" class="form-control">
+<option value="">Todas</option>
+{% for t in trabajadoras %}
+<option value="{{t.id}}">{{t.nombre}}</option>
+{% endfor %}
+</select>
+</div>
+
+<div class="col-md-4">
+<select name="quincena" class="form-control">
+<option value="">Mes completo</option>
+<option value="1">Quincena 1 (1–15)</option>
+<option value="2">Quincena 2 (16–fin)</option>
+</select>
+</div>
+
+<div class="col-md-4 mt-2">
+<button class="btn btn-primary w-100">Filtrar</button>
+</div>
+
+</form>
+
+<div class="alert alert-danger">
+<b>Descuento total:</b> S/ {{ total_penalidad }}
+</div>
+
+<table class="table table-bordered table-hover">
+
+<tr>
+<th>Fecha</th>
+<th>Trabajadora</th>
+<th>Hora</th>
+<th>Min tarde</th>
+<th>Penalidad</th>
+<th></th>
+</tr>
+
+{% for r in registros %}
+<tr>
+
+<td>{{ r.fecha }}</td>
+<td>{{ r.trabajadora.nombre }}</td>
+<td>{{ r.hora_ingreso }}</td>
+<td>{{ r.minutos_tarde }}</td>
+<td>S/ {{ r.penalidad }}</td>
+
+<td>
+
+<a href="/asistencia_admin?edit={{ r.id }}" class="btn btn-sm btn-outline-primary">
+Editar
+</a>
+
+<form method="POST" style="display:inline">
+<input type="hidden" name="accion" value="borrar">
+<input type="hidden" name="id" value="{{ r.id }}">
+<button class="btn btn-sm btn-outline-danger">🗑</button>
+</form>
+
+</td>
+
+</tr>
+{% endfor %}
+
+</table>
+
+{% if t_edit %}
+
+<hr>
+
+<h4>✏ Editando asistencia</h4>
+
+<form method="POST" class="row g-3">
+
+<!-- 🔥 ESTA LINEA FALTABA -->
+<input type="hidden" name="accion" value="editar">
+<input type="hidden" name="id" value="{{ t_edit.id }}">
+
+<div class="col-md-3">
+<label>Hora ingreso</label>
+<input type="time" class="form-control" name="hora" value="{{ t_edit.hora_ingreso }}">
+</div>
+
+<div class="col-md-3">
+<label>Min tarde</label>
+<input class="form-control" value="{{ t_edit.minutos_tarde }}" disabled>
+</div>
+
+<div class="col-md-3">
+<label>Penalidad</label>
+<input class="form-control" value="{{ t_edit.penalidad }}" disabled>
+</div>
+
+<div class="col-md-3 d-flex align-items-end">
+<button class="btn btn-success w-100">Guardar</button>
+</div>
+
+</form>
+
+{% endif %}
+
+<hr>
+
+<h4>➕ Marcar asistencia manual</h4>
+
+<form method="POST" class="row g-3">
+
+<input type="hidden" name="accion" value="manual">
+
+<div class="col-md-3">
+<label>Trabajadora</label>
+<select name="trabajadora" class="form-control">
+{% for t in trabajadoras %}
+<option value="{{t.id}}">{{t.nombre}}</option>
+{% endfor %}
+</select>
+</div>
+
+<div class="col-md-3">
+<label>Fecha</label>
+<input type="date" name="fecha" class="form-control" required>
+</div>
+
+<div class="col-md-3">
+<label>Hora</label>
+<input type="time" name="hora" class="form-control" required>
+</div>
+
+<div class="col-md-3 d-flex align-items-end">
+<button class="btn btn-success w-100">Registrar</button>
+</div>
+
+</form>
+
+<hr>
+
+<h4 class="mt-4">❌ Días sin marcar</h4>
+
+<table class="table table-bordered table-sm">
+
+<tr class="table-dark">
+<th>Fecha</th>
+{% for t in trabajadoras %}
+<th>{{ t.nombre }}</th>
+{% endfor %}
+</tr>
+
+{% for f in fechas %}
+<tr>
+
+<td>{{ f }}</td>
+
+{% for t in trabajadoras %}
+
+<td class="text-center">
+{% if faltas_tabla[f][t.nombre] %}
+❌
+{% endif %}
+</td>
+
+{% endfor %}
+
+</tr>
+{% endfor %}
+
+</table>
+</div>
+
+</body>
+</html>

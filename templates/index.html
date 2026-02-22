@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Sistema Salon</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            overflow-x: hidden;
+        }
+
+        .sidebar {
+            height: 100vh;
+            background: #1f2937;
+            color: white;
+            position: fixed;
+            width: 230px;
+        }
+
+        .sidebar a {
+            color: white;
+            text-decoration: none;
+            display: block;
+            padding: 12px 20px;
+        }
+
+        .sidebar a:hover {
+            background: #2563eb;
+        }
+
+        .main {
+            margin-left: 230px;
+            padding: 25px;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: bold;
+            padding: 15px;
+            text-align: center;
+            background: #111827;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+
+        <div class="logo">💇 Glow Salón</div>
+
+        <div style="padding:10px;text-align:center;background:#111827;font-size:14px;">
+            👤 Usuario activo:<br>
+            
+            <small style="color:#9ca3af">{{ session.get("rol") }}</small>
+        </div>
+
+        <a href="/">🏠 Inicio</a>
+
+        <a href="/ventas/nueva">➕ Nueva venta</a>
+
+        <a href="/ventas/historial">📋 Historial de Ventas</a>
+
+        <a href="/dashboard">📊 Dashboard</a>
+
+        {% if session.get("rol") == "admin" %}
+        <a href="/ventas">💰 Editar Ventas</a>
+
+        <a href="/asistencia_admin">⏱ Asistencia</a>
+        {% endif %}
+
+        <a href="/comprobantes">🧾 Comprobantes</a>
+
+        {% if session.get("rol") == "admin" %}
+
+<a href="/servicios">🛠 Servicios</a>
+
+<a href="/admin/trabajadoras">👩‍🔧 Administración de Trabajadoras</a>
+
+<a href="/boleta_trabajadora">🧾 Boletas Trabajadoras</a>
+
+{% endif %}
+
+        <a href="#" data-bs-toggle="modal" data-bs-target="#modalCambioUsuario">
+            🔄 Cambiar usuario
+        </a>
+
+        <a href="/logout">🚪 Salir</a>
+
+    </div>
+
+
+    <!-- MAIN -->
+    <div class="main">
+
+        <h3>Panel Principal</h3>
+
+        <div class="row mt-4">
+
+            <!-- FILA 1 -->
+
+            <div class="col-md-4 mb-4">
+                <div class="card shadow p-3">
+                    <h5>➕ Nueva Venta</h5>
+                    <p>Registrar venta rápida</p>
+                    <a href="/ventas/nueva" class="btn btn-success w-100">Abrir</a>
+                </div>
+            </div>
+
+            {% if session.get("rol") == "admin" %}
+            <div class="col-md-4 mb-4">
+                <div class="card shadow p-3">
+                    <h5>💰 Editar Ventas</h5>
+                    <p>Editar ventas</p>
+                    <a href="/ventas" class="btn btn-primary w-100">Abrir</a>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="col-md-4 mb-4">
+                <div class="card shadow p-3">
+                    <h5>📋 Historial de Ventas</h5>
+                    <p>Ver ventas registradas</p>
+                    <a href="/ventas/historial" class="btn btn-dark w-100">Abrir</a>
+                </div>
+            </div>
+
+
+
+            <!-- FILA 2 -->
+
+            <div class="col-md-4 mb-4">
+                <div class="card shadow p-3">
+                    <h5>📊 Dashboard</h5>
+                    <p>Resumen general</p>
+                    <a href="/dashboard" class="btn btn-secondary w-100">Abrir</a>
+                </div>
+            </div>
+
+            {% if session.get("rol") == "admin" %}
+            <div class="col-md-4 mb-4">
+                <div class="card shadow p-3">
+                    <h5>⏱ Asistencia</h5>
+                    <p>Control trabajadoras</p>
+                    <a href="/asistencia_admin" class="btn btn-warning w-100">Abrir</a>
+                </div>
+            </div>
+            {% endif %}
+
+
+            <div class="col-md-4 mb-4">
+                <div class="card shadow p-3">
+                    <h5>🧾 Comprobantes</h5>
+                    <p>Boletas y facturas</p>
+                    <a href="/comprobantes" class="btn btn-info w-100">Abrir</a>
+                </div>
+            </div>
+
+            {% if session.get("rol") == "admin" %}
+            <div class="col-md-4 mb-4">
+                <div class="card shadow p-3">
+                    <h5>🛠 Servicios</h5>
+                    <p>Administrar servicios</p>
+                    <a href="/servicios" class="btn btn-primary w-100">Abrir</a>
+                </div>
+            </div>
+            {% endif %}
+
+
+            {% if session.get("rol")=="admin" %}
+            <div class="col-md-4 mb-4">
+                <div class="card shadow p-3">
+                    <h5>👤 Usuarios</h5>
+                    <p>Administrar accesos</p>
+                    <a href="/usuarios" class="btn btn-dark w-100">Abrir</a>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if session.get("rol")=="admin" %}
+            <div class="col-md-4 mb-4">
+                <div class="card shadow p-3">
+                    <h5>👩‍🔧 Administración de Trabajadoras</h5>
+                    <p>Editar trabajadoras</p>
+                    <a href="/admin/trabajadoras" class="btn btn-success w-100">Abrir</a>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if session.get("rol") == "admin" %}
+<div class="col-md-4 mb-4">
+    <div class="card shadow p-3">
+        <h5>🧾 Boletas Trabajadoras</h5>
+        <p>Planilla y pagos quincenales</p>
+        <a href="/boleta_trabajadora" class="btn btn-primary w-100">
+            Abrir
+        </a>
+    </div>
+</div>
+{% endif %}
+
+        </div>
+
+
+    </div>
+    <div class="modal fade" id="modalCambioUsuario">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">Cambiar usuario</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <form method="POST" action="/login">
+
+                    <div class="modal-body">
+
+                        <input name="username" class="form-control mb-3" placeholder="Usuario" required>
+
+                        <input name="password" type="password" class="form-control" placeholder="Contraseña" required>
+
+                    </div>
+
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button class="btn btn-primary">Ingresar</button>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+
+</html>

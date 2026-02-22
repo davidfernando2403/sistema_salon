@@ -1,0 +1,259 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>Boletas Trabajadoras</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+
+<body class="bg-light">
+
+<div class="container mt-4">
+
+<h3 class="mb-3">🧾 Planilla quincenal {{ inicio }} → {{ fin }}</h3>
+<p>Periodo: {{ titulo }}</p>
+
+<a href="/" class="btn btn-secondary mb-3">⬅ Volver</a>
+<a href="/cerrar_quincena" class="btn btn-danger mb-3">
+🔒 Cerrar quincena
+</a>
+<a href="/boleta_trabajadora?hist=1" class="btn btn-dark mb-3">
+📚 Históricos
+</a>
+{% if hist %}
+
+<h4 class="mt-4">📚 Historial de boletas cerradas</h4>
+
+<table class="table table-bordered table-sm">
+
+<thead class="table-dark">
+<tr>
+<th>Trabajadora</th>
+<th>Periodo</th>
+<th>Sueldo</th>
+<th>Comisión</th>
+<th>Bonos</th>
+<th>Tardanzas</th>
+<th>Faltas</th>
+<th>Adelantos</th>
+<th>Descuentos</th>
+<th>Total</th>
+<th>Fecha cierre</th>
+<th></th>
+</tr>
+</thead>
+
+<tbody>
+
+{% for b in historicos %}
+
+<tr>
+<td>{{ b.trabajadora.nombre }}</td>
+<td>{{ b.fecha_inicio }} → {{ b.fecha_fin }}</td>
+<td>S/ {{ "%.2f"|format(b.sueldo_base) }}</td>
+<td>S/ {{ "%.2f"|format(b.comisiones) }}</td>
+<td>S/ {{ "%.2f"|format(b.bonos) }}</td>
+
+<td class="text-danger">
+S/ {{ "%.2f"|format(b.subtotal_descuentos - b.adelantos - b.descuentos_manual) }}
+</td>
+
+<td class="text-warning">S/ {{ "%.2f"|format(b.adelantos) }}</td>
+<td class="text-warning">S/ {{ "%.2f"|format(b.descuentos_manual) }}</td>
+
+<td class="fw-bold">S/ {{ "%.2f"|format(b.total_pagar) }}</td>
+<td>{{ b.fecha_cierre }}</td>
+
+<td>
+<a href="/boleta_pdf/{{ b.trabajadora_id }}" class="btn btn-sm btn-outline-dark">
+PDF
+</a>
+</td>
+</tr>
+
+{% endfor %}
+
+</tbody>
+</table>
+
+{% endif %}
+<!-- ================= LISTA DE TRABAJADORAS ================= -->
+
+<h5>Seleccionar trabajadora</h5>
+
+<div class="list-group mb-4">
+
+{% for f in todas_trabajadoras %}
+<a href="/boleta_trabajadora?ver={{ f.id }}"
+   class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+
+    {{ f.nombre }}
+
+    <span class="btn btn-sm btn-outline-primary">
+        Ver boleta
+    </span>
+
+</a>
+{% endfor %}
+
+</div>
+
+<!-- ================= BOLETA ================= -->
+
+{% if ver_id and filas %}
+
+<table class="table table-bordered table-hover">
+
+<thead class="table-dark">
+<tr>
+<th>Trabajadora</th>
+<th>Ventas</th>
+<th>Sueldo</th>
+<th>Comisión</th>
+<th>Tardanzas</th>
+<th>Faltas</th>
+<th>Bonos</th>
+<th>Adelantos</th>
+<th>Descuentos</th>
+<th>Total</th>
+<th></th>
+</tr>
+</thead>
+
+<tbody>
+
+{% set f = filas[0] %}
+
+<tr {% if edit_id == f.id %}class="table-warning"{% endif %}>
+<td>{{ f.nombre }}</td>
+<td>S/ {{ "%.2f"|format(f.ventas) }}</td>
+<td>S/ {{ "%.2f"|format(f.sueldo) }}</td>
+<td>S/ {{ "%.2f"|format(f.comision) }}</td>
+<td class="text-danger">- {{ "%.2f"|format(f.tardanzas) }}</td>
+<td class="text-danger"
+    data-bs-toggle="tooltip"
+    title="Faltó {{ f.dias_falta }} día(s)">
+    - {{ "%.2f"|format(f.faltas) }}
+</td>
+<td>S/ {{ "%.2f"|format(f.bonos) }}</td>
+<td class="text-warning">- {{ "%.2f"|format(f.adelantos) }}</td>
+<td class="text-warning">- {{ "%.2f"|format(f.descuentos) }}</td>
+<td class="fw-bold">S/ {{ "%.2f"|format(f.total) }}</td>
+
+<td>
+
+{% if not f.bloqueada %}
+<a class="btn btn-sm btn-outline-primary"
+   href="/boleta_trabajadora?ver={{ f.id }}&edit={{ f.id }}">
+Editar
+</a>
+{% else %}
+<span class="badge bg-success">Pagada</span>
+{% endif %}
+
+<a href="/boleta_pdf/{{ f.id }}" class="btn btn-sm btn-outline-dark ms-1">
+PDF
+</a>
+
+</td>
+</tr>
+
+{% if edit_id == f.id %}
+
+<tr class="table-warning">
+<td colspan="10">
+
+<form method="POST" class="row g-2 editarBoleta">
+
+<input type="hidden" name="trabajadora_id" value="{{ f.id }}">
+
+<div class="col-md-2">
+<label>Sueldo</label>
+<input name="sueldo" class="form-control campo" value="{{ f.sueldo }}">
+</div>
+
+<div class="col-md-2">
+<label>Comisión</label>
+<input name="comision" class="form-control campo" value="{{ f.comision }}">
+</div>
+
+<div class="col-md-2">
+<label>Tardanzas</label>
+<input name="tardanzas" class="form-control campo" value="{{ f.tardanzas }}" >
+</div>
+
+<div class="col-md-2">
+<label>Faltas</label>
+<input name="faltas" class="form-control campo" value="{{ f.faltas }}" >
+</div>
+
+<div class="col-md-2">
+<label>Bonos</label>
+<input name="bonos" class="form-control campo" value="{{ f.bonos }}">
+</div>
+
+<div class="col-md-2">
+<label>Adelantos</label>
+<input name="adelantos" class="form-control campo" value="{{ f.adelantos }}">
+</div>
+
+<div class="col-md-2">
+<label>Descuentos</label>
+<input name="descuentos" class="form-control campo" value="{{ f.descuentos }}">
+</div>
+
+<div class="col-md-2">
+<label>Total</label>
+<input name="total_manual" class="form-control total" value="{{ f.total }}" readonly>
+</div>
+
+<div class="col-md-12 mt-2">
+<button class="btn btn-success">Guardar</button>
+<a href="/boleta_trabajadora?ver={{ f.id }}" class="btn btn-secondary">Cancelar</a>
+</div>
+
+</form>
+
+</td>
+</tr>
+
+{% endif %}
+
+</tbody>
+</table>
+
+{% endif %}
+
+</div>
+
+<script>
+document.querySelectorAll('.editarBoleta').forEach(form => {
+
+    const campos = form.querySelectorAll('.campo');
+    const total = form.querySelector('.total');
+
+    campos.forEach(c => {
+        c.addEventListener('input', () => {
+
+            let sueldo = parseFloat(form.sueldo.value) || 0;
+            let comision = parseFloat(form.comision.value) || 0;
+
+            let bonos = parseFloat(form.bonos.value) || 0;
+            let adel = parseFloat(form.adelantos.value) || 0;
+            let desc = parseFloat(form.descuentos.value) || 0;
+
+            total.value = (sueldo + comision + bonos - adel - desc).toFixed(2);
+        });
+    });
+
+});
+</script>
+<script>
+const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+tooltipTriggerList.map(function (tooltipTriggerEl) {
+  return new bootstrap.Tooltip(tooltipTriggerEl)
+})
+</script>
+</body>
+</html>

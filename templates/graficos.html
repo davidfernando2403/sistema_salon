@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Gráficos</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+</head>
+
+<body class="bg-light">
+
+<div class="container mt-4">
+
+<h2 class="mb-4">📊 Análisis Gráfico</h2>
+
+<a href="/dashboard" class="btn btn-secondary mb-4">⬅ Volver</a>
+
+<form method="GET" class="row mb-4">
+
+<div class="col-md-3">
+<input type="month" name="mes" value="{{ mes_sel }}" class="form-control">
+</div>
+
+<div class="col-md-2">
+<button class="btn btn-primary w-100">Cambiar mes</button>
+</div>
+
+</form>
+
+<h4>Total ventas por día</h4>
+<canvas id="ventasDia"></canvas>
+
+<hr>
+
+<h4>Producción diaria por trabajadora</h4>
+<canvas id="prodTrab"></canvas>
+
+<hr>
+
+<h4>Producción mes a mes</h4>
+<canvas id="mesMes"></canvas>
+
+<hr>
+
+<h4>Servicios más realizados</h4>
+
+<form method="GET" class="row mb-3">
+    <p class="text-muted">
+Mostrando datos de {{ mes_serv }} ordenado por {{ orden }}
+</p>
+
+<input type="hidden" name="mes" value="{{ mes_sel }}">
+
+<div class="col-md-4">
+<input type="month"
+       name="mes_servicios"
+       value="{{ mes_serv }}"
+       class="form-control">
+</div>
+
+<div class="col-md-4">
+<select name="orden" class="form-select">
+<option value="cantidad" {% if orden=="cantidad" %}selected{% endif %}>
+Ordenar por cantidad
+</option>
+<option value="total" {% if orden=="total" %}selected{% endif %}>
+Ordenar por total S/
+</option>
+</select>
+</div>
+
+<div class="col-md-4">
+<button class="btn btn-dark w-100">Aplicar</button>
+</div>
+
+</form>
+
+<canvas id="servicios"></canvas>
+
+<hr>
+
+<h4>Ventas por método de pago</h4>
+
+<form method="GET" class="row mb-3">
+
+<input type="hidden" name="mes" value="{{ mes_sel }}">
+<input type="hidden" name="mes_servicios" value="{{ mes_serv }}">
+
+<div class="col-md-4">
+<input type="month"
+       name="mes_pagos"
+       value="{{ mes_pagos }}"
+       class="form-control">
+</div>
+
+<div class="col-md-2">
+<button class="btn btn-dark w-100">Aplicar</button>
+</div>
+
+</form>
+<canvas id="metodoPago"></canvas>
+
+</div>
+
+<script>
+
+// 1 Ventas día
+new Chart(ventasDia,{
+type:'line',
+data:{
+labels: {{ dias|tojson }},
+datasets:[{
+label:'Ventas S/',
+data: {{ totales_dia|tojson }},
+borderColor:'blue',
+fill:false
+}]
+}
+});
+
+// 2 Producción trabajadora
+new Chart(prodTrab,{
+type:'bar',
+data:{
+labels: {{ prod_labels|tojson }},
+datasets: {{ prod_datasets|tojson }}
+},
+options:{scales:{y:{beginAtZero:true}}}
+});
+
+// 3 Mes a mes
+new Chart(mesMes,{
+type:'bar',
+data:{
+labels: {{ meses_labels|tojson }},
+datasets:[{
+label:'Producción S/',
+data: {{ meses_totales|tojson }},
+backgroundColor:'green'
+}]
+}
+});
+
+// 4 Servicios dual axis
+new Chart(servicios,{
+type:'bar',
+data:{
+labels: {{ serv_nombres|tojson }},
+datasets:[
+{
+label:'Cantidad',
+data: {{ serv_cantidad|tojson }},
+backgroundColor:'orange',
+yAxisID:'yCantidad'
+},
+{
+label:'Total S/',
+data: {{ serv_totales|tojson }},
+backgroundColor:'green',
+yAxisID:'yDinero'
+}
+]
+},
+options:{
+scales:{
+yCantidad:{type:'linear',position:'left'},
+yDinero:{type:'linear',position:'right',grid:{drawOnChartArea:false}}
+}
+}
+});
+
+// ===== 5 MÉTODO DE PAGO (BARRAS CON COLORES PERSONALIZADOS) =====
+
+const pagoLabels = {{ pago_labels|tojson }};
+const pagoTotales = {{ pago_totales|tojson }};
+
+const coloresPago = pagoLabels.map(p => {
+
+    p = p.toLowerCase();
+
+    if (p.includes("plin")) return "#2fa36b";       // verde suave
+    if (p.includes("yape")) return "#7b5aa6";      // morado elegante
+    if (p.includes("tarjeta")) return "#f0a04b";   // naranja tenue
+    if (p.includes("efectivo")) return "#5dade2";  // celeste
+
+    return "#adb5bd"; // gris por defecto
+});
+
+new Chart(document.getElementById('metodoPago'),{
+type:'bar',
+data:{
+labels: pagoLabels,
+datasets:[{
+label:'Total S/',
+data: pagoTotales,
+backgroundColor: coloresPago
+}]
+},
+options:{
+responsive:true,
+scales:{
+y:{
+beginAtZero:true,
+title:{
+display:true,
+text:'Monto S/'
+}
+}
+}
+}
+});
+
+
+</script>
+
+</body>
+</html>
