@@ -29,11 +29,11 @@ td {
 
         <h3>➕ Registrar venta</h3>
 
-        {% with messages = get_flashed_messages(category_filter=["ventas"]) %}
-        {% for c,m in messages %}
-        <div class="alert alert-{{c}}">{{m}}</div>
-        {% endfor %}
-        {% endwith %}
+        {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for c, m in messages %}
+        <div class="alert alert-{{ c }}">{{ m }}</div>
+    {% endfor %}
+{% endwith %}
 
         <form method="POST" action="/ventas/guardar" class="row g-3">
 
