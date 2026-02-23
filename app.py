@@ -13,6 +13,11 @@ app.secret_key = "clave_secreta_123"
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///salon.db'
 db = SQLAlchemy(app)
 
+@app.route("/init_db")
+def init_db():
+    db.create_all()
+    return "Base de datos creada correctamente ✅"
+
 # -------- MODELOS --------
 
 class Trabajadora(db.Model):
