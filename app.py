@@ -23,9 +23,6 @@ if db_url.startswith("postgres://"):
 app.config["SQLALCHEMY_DATABASE_URI"] = db_url
 db = SQLAlchemy(app)
 
-with app.app_context():
-    db.create_all()
-
 
 # -------- MODELOS --------
 
@@ -136,6 +133,8 @@ class Factura(db.Model):
     monto = db.Column(db.Float)
     fecha = db.Column(db.Date)
 
+with app.app_context():
+    db.create_all()
 
 def trabajadoras_activas():
     return Trabajadora.query.filter_by(activo=True).order_by(Trabajadora.nombre).all()
@@ -143,6 +142,7 @@ def trabajadoras_activas():
 from datetime import date, timedelta
 from sqlalchemy import extract
 import math
+
 
 def calcular_boleta(trabajadora, fecha_inicio, fecha_fin):
 
