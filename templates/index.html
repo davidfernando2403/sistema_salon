@@ -55,7 +55,7 @@
 
         <div style="padding:10px;text-align:center;background:#111827;font-size:14px;">
             👤 Usuario activo:<br>
-            
+
             <small style="color:#9ca3af">{{ session.get("rol") }}</small>
         </div>
 
@@ -77,13 +77,15 @@
 
         {% if session.get("rol") == "admin" %}
 
-<a href="/servicios">🛠 Servicios</a>
+        <a href="/servicios">🛠 Servicios</a>
 
-<a href="/admin/trabajadoras">👩‍🔧 Administración de Trabajadoras</a>
+        <a href="/admin/trabajadoras">👩‍🔧 Administración de Trabajadoras</a>
 
-<a href="/boleta_trabajadora">🧾 Boletas Trabajadoras</a>
+        <a href="/boleta_trabajadora">🧾 Boletas Trabajadoras</a>
 
-{% endif %}
+        {% endif %}
+
+        <a href="/marcar">⏱ Marcar Asistencia</a>
 
         <a href="#" data-bs-toggle="modal" data-bs-target="#modalCambioUsuario">
             🔄 Cambiar usuario
@@ -192,16 +194,16 @@
             {% endif %}
 
             {% if session.get("rol") == "admin" %}
-<div class="col-md-4 mb-4">
-    <div class="card shadow p-3">
-        <h5>🧾 Boletas Trabajadoras</h5>
-        <p>Planilla y pagos quincenales</p>
-        <a href="/boleta_trabajadora" class="btn btn-primary w-100">
-            Abrir
-        </a>
-    </div>
-</div>
-{% endif %}
+            <div class="col-md-4 mb-4">
+                <div class="card shadow p-3">
+                    <h5>🧾 Boletas Trabajadoras</h5>
+                    <p>Planilla y pagos quincenales</p>
+                    <a href="/boleta_trabajadora" class="btn btn-primary w-100">
+                        Abrir
+                    </a>
+                </div>
+            </div>
+            {% endif %}
 
         </div>
 
