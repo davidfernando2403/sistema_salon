@@ -10,7 +10,9 @@ from sqlalchemy import extract
 
 app = Flask(__name__)
 app.secret_key = "clave_secreta_123"
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///salon.db'
+import os
+
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URL")
 db = SQLAlchemy(app)
 
 
@@ -1680,5 +1682,4 @@ def boleta_pdf(trabajadora_id):
 
     buffer.seek(0)
     return send_file(buffer, download_name="boleta.pdf", mimetype="application/pdf")
-
 
