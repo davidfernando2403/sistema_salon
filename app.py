@@ -23,9 +23,6 @@ if db_url.startswith("postgres://"):
 app.config["SQLALCHEMY_DATABASE_URI"] = db_url
 db = SQLAlchemy(app)
 
-with app.app_context():
-    db.create_all()
-
 
 # -------- MODELOS --------
 
