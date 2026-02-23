@@ -12,8 +12,19 @@ app = Flask(__name__)
 app.secret_key = "clave_secreta_123"
 import os
 
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URL")
+db_url = os.environ.get("DATABASE_URL")
+
+if not db_url:
+    raise RuntimeError("DATABASE_URL no está definido en Railway")
+
+if db_url.startswith("postgres://"):
+    db_url = db_url.replace("postgres://", "postgresql+psycopg2://", 1)
+
+app.config["SQLALCHEMY_DATABASE_URI"] = db_url
 db = SQLAlchemy(app)
+
+with app.app_context():
+    db.create_all()
 
 
 # -------- MODELOS --------
