@@ -133,8 +133,7 @@ class Factura(db.Model):
     monto = db.Column(db.Float)
     fecha = db.Column(db.Date)
 
-with app.app_context():
-    db.create_all()
+
 
 def trabajadoras_activas():
     return Trabajadora.query.filter_by(activo=True).order_by(Trabajadora.nombre).all()
