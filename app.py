@@ -151,6 +151,9 @@ class Factura(db.Model):
 def trabajadoras_activas():
     return Trabajadora.query.filter_by(activo=True).order_by(Trabajadora.nombre).all()
 
+def servicios_ordenados():
+    return Servicio.query.order_by(Servicio.nombre.asc()).all()
+
 from datetime import date, timedelta
 from sqlalchemy import extract
 import math
@@ -253,7 +256,7 @@ def index():
 
     ventas = Venta.query.all()
     trabajadoras = trabajadoras_activas()
-    servicios = Servicio.query.all()
+    servicios = Servicio.query.order_by(Servicio.nombre.asc()).all()
 
     return render_template(
         "index.html",
@@ -428,7 +431,7 @@ def ventas_nueva():
         "venta_nueva.html",
         ventas=ventas,
         trabajadoras=trabajadoras_activas(),
-        servicios=Servicio.query.all()
+        servicios=Servicio.query.order_by(Servicio.nombre.asc()).all()
     )
 
 @app.route("/ventas/historial")
@@ -515,7 +518,7 @@ def servicios():
     if session.get("rol") != "admin":
         return redirect("/")
 
-    lista = Servicio.query.all()
+    lista = Servicio.query.order_by(Servicio.nombre.asc()).all()
     return render_template("servicios.html", servicios=lista)
 
 @app.route("/servicios/agregar", methods=["POST"])
@@ -603,7 +606,7 @@ def ventas():
         "ventas.html",
         ventas=ventas,
         trabajadoras=trabajadoras_activas(),
-        servicios=Servicio.query.all(),
+        servicios=Servicio.query.order_by(Servicio.nombre.asc()).all(),
         campo=campo,
         q=q,
         fecha=fecha
