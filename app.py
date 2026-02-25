@@ -8,11 +8,12 @@ from zoneinfo import ZoneInfo
 PERU_TZ = ZoneInfo("America/Lima")
 
 def ahora_peru():
-    dt = datetime(2026, 2, 24, 20, 30, tzinfo=PERU_TZ)
+    dt = datetime.now(PERU_TZ)
     return dt.replace(tzinfo=None)
 
 def hoy_peru():
     return ahora_peru().date()
+
 from flask import session, redirect, url_for
 from flask import flash
 from sqlalchemy import func
