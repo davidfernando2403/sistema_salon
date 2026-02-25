@@ -8,7 +8,7 @@ from zoneinfo import ZoneInfo
 PERU_TZ = ZoneInfo("America/Lima")
 
 def ahora_peru():
-    return datetime.now(PERU_TZ)
+    return datetime(2026, 2, 24, 20, 30, tzinfo=PERU_TZ)
 
 def hoy_peru():
     return ahora_peru().date()
