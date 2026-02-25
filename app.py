@@ -1,6 +1,17 @@
+
 from flask import Flask, render_template, request, redirect
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
+from datetime import datetime, date
+from zoneinfo import ZoneInfo
+
+PERU_TZ = ZoneInfo("America/Lima")
+
+def ahora_peru():
+    return datetime.now(PERU_TZ)
+
+def hoy_peru():
+    return ahora_peru().date()
 from flask import session, redirect, url_for
 from flask import flash
 from sqlalchemy import func
@@ -93,7 +104,7 @@ class Servicio(db.Model):
 
 class Venta(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    fecha = db.Column(db.DateTime, default=datetime.utcnow)
+    fecha = db.Column(db.DateTime, default=ahora_peru)
 
     cliente = db.Column(db.String(100))
     precio = db.Column(db.Float)
@@ -372,7 +383,7 @@ def ventas_guardar():
         if fecha_form:
             fecha = datetime.strptime(fecha_form, "%Y-%m-%d")
         else:
-            fecha = datetime.now()
+            fecha = ahora_peru()
 
         nueva = Venta(
             fecha=fecha,
@@ -405,7 +416,7 @@ def ventas_nueva():
 
     from datetime import date
 
-    hoy = date.today()
+    hoy = hoy_peru()
 
     ventas = Venta.query.filter(
         db.func.date(Venta.fecha)==hoy
@@ -707,7 +718,7 @@ def dashboard():
     from datetime import datetime, timedelta
     from sqlalchemy import extract
 
-    hoy = datetime.now()
+    hoy = ahora_peru()
     dia = hoy.day
     mes_actual = hoy.month
     anio_actual = hoy.year
@@ -762,7 +773,7 @@ def dashboard():
     from sqlalchemy import func
     from datetime import date
 
-    hoy = date.today()
+    hoy = hoy_peru()
 
     # total vendido hoy
     ventas_hoy = Venta.query.filter(db.func.date(Venta.fecha)==hoy).all()
@@ -940,7 +951,7 @@ def marcar():
     if request.method == "POST":
 
         trabajadora_id = int(request.form["trabajadora"])
-        ahora = datetime.now()
+        ahora = ahora_peru()
 
         fecha = ahora.date()
         hora_ingreso = ahora.time()
@@ -1227,7 +1238,7 @@ def graficos():
     from datetime import datetime
     from sqlalchemy import extract, func
 
-    hoy = datetime.now()
+    hoy = ahora_peru()
 
     mes_sel = request.args.get("mes") or f"{hoy.year}-{str(hoy.month).zfill(2)}"
     anio = int(mes_sel.split("-")[0])
@@ -1648,7 +1659,7 @@ def cerrar_quincena():
 
     for b in boletas:
         b.cerrada = True
-        b.fecha_cierre = datetime.now()
+        b.fecha_cierre = ahora_peru()
 
     db.session.commit()
 
