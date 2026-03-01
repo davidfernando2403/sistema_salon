@@ -1494,18 +1494,38 @@ def boleta_trabajadora():
 
     from datetime import date, timedelta
 
+    mes_sel = request.args.get("mes")
+    quincena_sel = request.args.get("q")
+
     hoy = hoy_peru()
 
-    # ===== PERIODO QUINCENAL =====
-    if hoy.day <= 15:
-        inicio = date(hoy.year, hoy.month, 1)
-        fin = date(hoy.year, hoy.month, 15)
-        titulo = "1–15"
+    if mes_sel and quincena_sel:
+
+        anio = int(mes_sel.split("-")[0])
+        mes = int(mes_sel.split("-")[1])
+        q = int(quincena_sel)
+
+        if q == 1:
+            inicio = date(anio, mes, 1)
+            fin = date(anio, mes, 15)
+            titulo = "1–15"
+        else:
+            inicio = date(anio, mes, 16)
+            siguiente = date(anio + (mes==12), ((mes)%12)+1, 1)
+            fin = siguiente - timedelta(days=1)
+            titulo = "16–fin"
+
     else:
-        inicio = date(hoy.year, hoy.month, 16)
-        siguiente = date(hoy.year + (hoy.month==12), ((hoy.month)%12)+1, 1)
-        fin = siguiente - timedelta(days=1)
-        titulo = "16–fin"
+        # fallback automático actual
+        if hoy.day <= 15:
+            inicio = date(hoy.year, hoy.month, 1)
+            fin = date(hoy.year, hoy.month, 15)
+            titulo = "1–15"
+        else:
+            inicio = date(hoy.year, hoy.month, 16)
+            siguiente = date(hoy.year + (hoy.month==12), ((hoy.month)%12)+1, 1)
+            fin = siguiente - timedelta(days=1)
+            titulo = "16–fin"
 
     if fin.weekday() == 6:
         fin -= timedelta(days=1)

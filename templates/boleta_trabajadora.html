@@ -12,6 +12,27 @@
 
 <h3 class="mb-3">🧾 Planilla quincenal {{ inicio }} → {{ fin }}</h3>
 <p>Periodo: {{ titulo }}</p>
+<form method="GET" class="row g-2 mb-3">
+
+<div class="col-md-3">
+<label>Mes</label>
+<input type="month" name="mes" class="form-control"
+       value="{{ request.args.get('mes', '') }}">
+</div>
+
+<div class="col-md-2">
+<label>Quincena</label>
+<select name="q" class="form-control">
+    <option value="1">1 – 15</option>
+    <option value="2">16 – fin</option>
+</select>
+</div>
+
+<div class="col-md-2 d-flex align-items-end">
+<button class="btn btn-primary">Ver</button>
+</div>
+
+</form>
 
 <a href="/" class="btn btn-secondary mb-3">⬅ Volver</a>
 <a href="/cerrar_quincena" class="btn btn-danger mb-3">🔒 Cerrar quincena</a>
