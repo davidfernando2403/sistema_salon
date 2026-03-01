@@ -56,17 +56,25 @@
 
 </div>
 
-<form method="GET" class="row mb-3">
+<!-- ================= FILTROS ================= -->
+
+<form method="GET" class="row mb-3 g-2">
 
 <div class="col-md-4">
-<input type="month" name="mes" class="form-control" value="{{ mes_sel or '' }}">
+<input type="month"
+       name="mes"
+       class="form-control"
+       value="{{ mes_sel or '' }}">
 </div>
 
 <div class="col-md-4">
 <select name="trabajadora" class="form-control">
 <option value="">Todas</option>
 {% for t in trabajadoras %}
-<option value="{{t.id}}">{{t.nombre}}</option>
+<option value="{{t.id}}"
+    {% if trabajadora_id and trabajadora_id|int == t.id %}selected{% endif %}>
+    {{t.nombre}}
+</option>
 {% endfor %}
 </select>
 </div>
@@ -74,8 +82,8 @@
 <div class="col-md-4">
 <select name="quincena" class="form-control">
 <option value="">Mes completo</option>
-<option value="1">Quincena 1 (1–15)</option>
-<option value="2">Quincena 2 (16–fin)</option>
+<option value="1" {% if quincena=="1" %}selected{% endif %}>Quincena 1 (1–15)</option>
+<option value="2" {% if quincena=="2" %}selected{% endif %}>Quincena 2 (16–fin)</option>
 </select>
 </div>
 
@@ -111,7 +119,12 @@
 
 <td>
 
-<a href="/asistencia_admin?edit={{ r.id }}" class="btn btn-sm btn-outline-primary">
+<a href="{{ url_for('asistencia_admin',
+        edit=r.id,
+        mes=mes_sel,
+        trabajadora=trabajadora_id,
+        quincena=quincena) }}"
+   class="btn btn-sm btn-outline-primary">
 Editar
 </a>
 
@@ -136,13 +149,15 @@ Editar
 
 <form method="POST" class="row g-3">
 
-<!-- 🔥 ESTA LINEA FALTABA -->
 <input type="hidden" name="accion" value="editar">
 <input type="hidden" name="id" value="{{ t_edit.id }}">
 
 <div class="col-md-3">
 <label>Hora ingreso</label>
-<input type="time" class="form-control" name="hora" value="{{ t_edit.hora_ingreso }}">
+<input type="time"
+       class="form-control"
+       name="hora"
+       value="{{ t_edit.hora_ingreso }}">
 </div>
 
 <div class="col-md-3">
@@ -215,20 +230,18 @@ Editar
 <td>{{ f }}</td>
 
 {% for t in trabajadoras %}
-
 <td class="text-center">
 {% if faltas_tabla[f][t.nombre] %}
 ❌
 {% endif %}
 </td>
-
 {% endfor %}
 
 </tr>
 {% endfor %}
 
 </table>
-</div>
 
+</div>
 </body>
 </html>

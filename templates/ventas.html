@@ -4,7 +4,6 @@
 <title>Ventas</title>
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
 </head>
 
 <body class="bg-light">
@@ -14,9 +13,9 @@
 <h3 class="mb-3">📋 CRUD Ventas (Admin)</h3>
 <a href="/" class="btn btn-secondary mt-3">⬅ Volver</a>
 
-
 <div class="table-responsive">
-<form method="GET" class="row mb-3">
+
+<form method="GET" class="row mb-3 g-2">
 
 <div class="col-md-3">
 <select name="campo" class="form-select">
@@ -28,20 +27,27 @@
 </select>
 </div>
 
-<div class="col-md-4">
-<input type="text" name="q" class="form-control"
+<div class="col-md-3">
+<input type="text" 
+       name="q" 
+       class="form-control"
        value="{{ q or '' }}"
        placeholder="Buscar...">
 </div>
 
-<div class="col-md-3 d-flex gap-2">
+<div class="col-md-2">
+<input type="date"
+       name="fecha"
+       class="form-control"
+       value="{{ fecha or '' }}">
+</div>
 
+<div class="col-md-4 d-flex gap-2">
 <button class="btn btn-primary w-50">Buscar</button>
 
 <a href="/ventas" class="btn btn-secondary w-50">
 Limpiar
 </a>
-
 </div>
 
 </form>
@@ -121,13 +127,13 @@ Limpiar
 <td>
 <input class="form-control form-control-sm"
        name="dni"
-       value="{{ v.dni|int if v.dni }}">
+       value="{{ v.dni or '' }}">
 </td>
 
 <td>
 <input class="form-control form-control-sm"
        name="telefono"
-       value="{{ v.telefono|int if v.telefono }}">
+       value="{{ v.telefono or '' }}">
 </td>
 
 <td style="min-width:150px">
@@ -159,13 +165,14 @@ Limpiar
 
 </tbody>
 </table>
+
 <nav class="mt-3">
 <ul class="pagination justify-content-center">
 
 {% if ventas.has_prev %}
 <li class="page-item">
 <a class="page-link"
-   href="{{ url_for('ventas', page=ventas.prev_num, campo=campo, q=q) }}">
+   href="{{ url_for('ventas', page=ventas.prev_num, **request.args) }}">
 Anterior
 </a>
 </li>
@@ -175,7 +182,7 @@ Anterior
   {% if num %}
     <li class="page-item {% if ventas.page == num %}active{% endif %}">
       <a class="page-link"
-         href="{{ url_for('ventas', page=num, campo=campo, q=q) }}">
+         href="{{ url_for('ventas', page=num, **request.args) }}">
          {{ num }}
       </a>
     </li>
@@ -185,7 +192,7 @@ Anterior
 {% if ventas.has_next %}
 <li class="page-item">
 <a class="page-link"
-   href="{{ url_for('ventas', page=ventas.next_num, campo=campo, q=q) }}">
+   href="{{ url_for('ventas', page=ventas.next_num, **request.args) }}">
 Siguiente
 </a>
 </li>
@@ -195,8 +202,6 @@ Siguiente
 </nav>
 
 </div>
-
-
 </div>
 
 </body>
