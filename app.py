@@ -1564,7 +1564,7 @@ def boleta_trabajadora():
         filas.append({
             "id": t.id,
             "nombre": t.nombre,
-            "modificada_manual": boleta.modificada_manual if boleta else False
+            "modificada_manual": boleta.modificada_manual if boleta else False,
             **r
         })
 
