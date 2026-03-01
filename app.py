@@ -1581,9 +1581,8 @@ def boleta_trabajadora():
         descuentos = float(request.form.get("descuentos") or 0)
 
         # 🔹 recalcular penalidades separadas
-        r_calc = calcular_boleta(Trabajadora.query.get(tid), inicio, fin)
-        tardanzas = r_calc.get("tardanzas", 0)
-        faltas = r_calc.get("faltas", 0)
+        tardanzas = float(request.form.get("tardanzas") or 0)
+        faltas = float(request.form.get("faltas") or 0)
 
         ingresos = sueldo + comision + bonos
         egresos = tardanzas + faltas + adelantos + descuentos
