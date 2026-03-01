@@ -191,8 +191,17 @@ Ajuste manual
 </div>
 
 <div class="col-md-12 mt-2">
-<button class="btn btn-success">Guardar</button>
-<a href="/boleta_trabajadora?ver={{ f.id }}" class="btn btn-secondary">Cancelar</a>
+<button name="accion" value="guardar" class="btn btn-success">
+Guardar
+</button>
+
+<button name="accion" value="recalcular" class="btn btn-warning">
+Recalcular automático
+</button>
+
+<a href="/boleta_trabajadora?ver={{ f.id }}" class="btn btn-secondary">
+Cancelar
+</a>
 </div>
 
 </form>

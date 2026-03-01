@@ -1520,99 +1520,13 @@ def boleta_trabajadora():
 
     hist = request.args.get("hist")
 
-    filas = []
-
-    # ===== ARMAR BOLETAS =====
-    for t in trabajadoras:
-
-        r = calcular_boleta(t, inicio, fin)
-
-        # sueldo quincenal por defecto
-        r["sueldo"] = round((t.sueldo_base or 0) / 2, 2)
-
-        # 🔹 Asegurar separación de penalidades
-        r["tardanzas"] = r.get("tardanzas", 0)
-        r["faltas"] = r.get("faltas", 0)
-
-        boleta = BoletaTrabajadora.query.filter_by(
-            trabajadora_id=t.id,
-            fecha_inicio=inicio,
-            fecha_fin=fin
-        ).first()
-
-        # 🔒 bloqueo si está cerrada
-        r["bloqueada"] = True if (boleta and boleta.cerrada) else False
-
-        if boleta:
-            r["sueldo"] = boleta.sueldo_base
-            r["comision"] = boleta.comisiones
-            r["bonos"] = boleta.bonos
-            r["adelantos"] = boleta.adelantos
-            r["descuentos"] = boleta.descuentos_manual
-
-            # solo usar valores guardados si existen
-            if boleta.tardanzas:
-                r["tardanzas"] = boleta.tardanzas
-            if boleta.faltas:
-                r["faltas"] = boleta.faltas
-
-        ingresos = r["sueldo"] + r["comision"] + r["bonos"]
-        egresos = r["tardanzas"] + r["faltas"] + r["adelantos"] + r["descuentos"]
-
-        r["total"] = ingresos - egresos
-
-        filas.append({
-            "id": t.id,
-            "nombre": t.nombre,
-            "modificada_manual": boleta.modificada_manual if boleta else False,
-            **r
-        })
-
-    # ===== FILTRAR SOLO LA SELECCIONADA =====
-    if ver_id:
-        filas = [f for f in filas if f["id"] == ver_id]
-
-    accion = request.form.get("accion")
-
-    if accion == "recalcular":
-
-        r_calc = calcular_boleta(Trabajadora.query.get(tid), inicio, fin)
-
-        boleta.tardanzas = r_calc.get("tardanzas", 0)
-        boleta.faltas = r_calc.get("faltas", 0)
-        boleta.modificada_manual = False
-
-        db.session.commit()
-        flash("Valores recalculados automáticamente ✅", "info")
-
-        return redirect(f"/boleta_trabajadora?ver={tid}")
-    
-    # ===== GUARDAR EDICION =====
+    # ================= POST =================
     if request.method == "POST":
 
+        accion = request.form.get("accion")
         tid = int(request.form["trabajadora_id"])
 
-        sueldo = float(request.form.get("sueldo") or 0)
-        comision = float(request.form.get("comision") or 0)
-        bonos = float(request.form.get("bonos") or 0)
-        adelantos = float(request.form.get("adelantos") or 0)
-        descuentos = float(request.form.get("descuentos") or 0)
-
-        # 🔹 recalcular penalidades separadas
-        tardanzas = float(request.form.get("tardanzas") or 0)
-        faltas = float(request.form.get("faltas") or 0)
-        
-        # valores reales automáticos
-        r_calc = calcular_boleta(Trabajadora.query.get(tid), inicio, fin)
-        tardanzas_auto = r_calc.get("tardanzas", 0)
-        faltas_auto = r_calc.get("faltas", 0)
-
-        # detectar modificación manual
-        modificada = (tardanzas != tardanzas_auto) or (faltas != faltas_auto)
-
-        ingresos = sueldo + comision + bonos
-        egresos = tardanzas + faltas + adelantos + descuentos
-        total = ingresos - egresos
+        t = Trabajadora.query.get(tid)
 
         boleta = BoletaTrabajadora.query.filter_by(
             trabajadora_id=tid,
@@ -1626,6 +1540,52 @@ def boleta_trabajadora():
                 fecha_inicio=inicio,
                 fecha_fin=fin
             )
+
+        # ===== RECALCULAR AUTOMÁTICO =====
+        if accion == "recalcular":
+
+            r_calc = calcular_boleta(t, inicio, fin)
+
+            boleta.sueldo_base = r_calc.get("sueldo", 0)
+            boleta.comisiones = r_calc.get("comision", 0)
+            boleta.tardanzas = r_calc.get("tardanzas", 0)
+            boleta.faltas = r_calc.get("faltas", 0)
+
+            ingresos = boleta.sueldo_base + boleta.comisiones + boleta.bonos
+            egresos = boleta.tardanzas + boleta.faltas + boleta.adelantos + boleta.descuentos_manual
+
+            boleta.subtotal_ingresos = ingresos
+            boleta.subtotal_descuentos = egresos
+            boleta.total_pagar = ingresos - egresos
+
+            boleta.modificada_manual = False
+
+            db.session.add(boleta)
+            db.session.commit()
+
+            flash("Valores recalculados automáticamente ✅", "info")
+            return redirect(f"/boleta_trabajadora?ver={tid}")
+
+        # ===== GUARDAR EDICION MANUAL =====
+
+        sueldo = float(request.form.get("sueldo") or 0)
+        comision = float(request.form.get("comision") or 0)
+        bonos = float(request.form.get("bonos") or 0)
+        adelantos = float(request.form.get("adelantos") or 0)
+        descuentos = float(request.form.get("descuentos") or 0)
+        tardanzas = float(request.form.get("tardanzas") or 0)
+        faltas = float(request.form.get("faltas") or 0)
+
+        # valores automáticos reales
+        r_calc = calcular_boleta(t, inicio, fin)
+        tardanzas_auto = r_calc.get("tardanzas", 0)
+        faltas_auto = r_calc.get("faltas", 0)
+
+        modificada = (tardanzas != tardanzas_auto) or (faltas != faltas_auto)
+
+        ingresos = sueldo + comision + bonos
+        egresos = tardanzas + faltas + adelantos + descuentos
+        total = ingresos - egresos
 
         boleta.sueldo_base = sueldo
         boleta.comisiones = comision
@@ -1644,6 +1604,49 @@ def boleta_trabajadora():
 
         flash("Boleta actualizada ✅","success")
         return redirect(f"/boleta_trabajadora?ver={tid}")
+
+    # ================= ARMAR TABLA =================
+
+    filas = []
+
+    for t in trabajadoras:
+
+        r = calcular_boleta(t, inicio, fin)
+
+        r["sueldo"] = round((t.sueldo_base or 0) / 2, 2)
+        r["tardanzas"] = r.get("tardanzas", 0)
+        r["faltas"] = r.get("faltas", 0)
+
+        boleta = BoletaTrabajadora.query.filter_by(
+            trabajadora_id=t.id,
+            fecha_inicio=inicio,
+            fecha_fin=fin
+        ).first()
+
+        r["bloqueada"] = True if (boleta and boleta.cerrada) else False
+
+        if boleta:
+            r["sueldo"] = boleta.sueldo_base
+            r["comision"] = boleta.comisiones
+            r["bonos"] = boleta.bonos
+            r["adelantos"] = boleta.adelantos
+            r["descuentos"] = boleta.descuentos_manual
+            r["tardanzas"] = boleta.tardanzas
+            r["faltas"] = boleta.faltas
+
+        ingresos = r["sueldo"] + r["comision"] + r["bonos"]
+        egresos = r["tardanzas"] + r["faltas"] + r["adelantos"] + r["descuentos"]
+        r["total"] = ingresos - egresos
+
+        filas.append({
+            "id": t.id,
+            "nombre": t.nombre,
+            "modificada_manual": boleta.modificada_manual if boleta else False,
+            **r
+        })
+
+    if ver_id:
+        filas = [f for f in filas if f["id"] == ver_id]
 
     historicos = []
 
