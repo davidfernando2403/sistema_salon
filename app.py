@@ -1128,7 +1128,7 @@ def asistencia_admin():
 
     trabajadoras = Trabajadora.query.filter_by(activo=True).order_by(Trabajadora.nombre).all()
 
-    hoy = date.today()
+    hoy = hoy_peru()
 
     if mes_sel:
         anio, mes = map(int, mes_sel.split("-"))
@@ -1156,7 +1156,7 @@ def asistencia_admin():
 
     faltas_tabla = {}
 
-    hoy = date.today()
+    hoy = hoy_peru()
 
     # calcular rango según quincena
     if quincena == "1":
@@ -1492,7 +1492,7 @@ def boleta_trabajadora():
 
     from datetime import date, timedelta
 
-    hoy = date.today()
+    hoy = hoy_peru()
 
     # ===== PERIODO QUINCENAL =====
     if hoy.day <= 15:
@@ -1647,7 +1647,7 @@ def cerrar_quincena():
 
     from datetime import datetime, date, timedelta
 
-    hoy = date.today()
+    hoy = hoy_peru()
 
     if hoy.day <= 15:
         inicio = date(hoy.year, hoy.month, 1)
