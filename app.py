@@ -1539,6 +1539,9 @@ def boleta_trabajadora():
     ver_id = int(ver_id) if ver_id else None
 
     hist = request.args.get("hist")
+    
+    mes_sel = request.args.get("mes")
+    quincena_sel = request.args.get("q")
 
     # ================= POST =================
     if request.method == "POST":
@@ -1584,7 +1587,9 @@ def boleta_trabajadora():
             db.session.commit()
 
             flash("Valores recalculados automáticamente ✅", "info")
-            return redirect(f"/boleta_trabajadora?ver={tid}")
+            return redirect(
+    f"/boleta_trabajadora?ver={tid}&mes={mes_sel}&q={quincena_sel}"
+)
 
         # ===== GUARDAR EDICION MANUAL =====
 
@@ -1623,7 +1628,9 @@ def boleta_trabajadora():
         db.session.commit()
 
         flash("Boleta actualizada ✅","success")
-        return redirect(f"/boleta_trabajadora?ver={tid}")
+        return redirect(
+    f"/boleta_trabajadora?ver={tid}&mes={mes_sel}&q={quincena_sel}"
+)
 
     # ================= ARMAR TABLA =================
 
