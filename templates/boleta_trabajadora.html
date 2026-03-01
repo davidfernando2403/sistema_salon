@@ -155,7 +155,11 @@ Editar
 <a href="/boleta_pdf/{{ f.id }}" class="btn btn-sm btn-outline-dark ms-1">
 PDF
 </a>
-
+{% if fila.bloqueada == False and fila.modificada_manual %}
+    <span class="badge bg-warning text-dark">
+        Ajuste manual
+    </span>
+{% endif %}
 </td>
 </tr>
 

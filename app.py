@@ -86,6 +86,8 @@ class BoletaTrabajadora(db.Model):
     subtotal_descuentos = db.Column(db.Float, default=0)
 
     total_pagar = db.Column(db.Float, default=0)
+    
+    modificada_manual = db.Column(db.Boolean, default=False)
 
     creado = db.Column(db.DateTime)
     
@@ -1562,6 +1564,7 @@ def boleta_trabajadora():
         filas.append({
             "id": t.id,
             "nombre": t.nombre,
+            "modificada_manual": boleta.modificada_manual if boleta else False
             **r
         })
 
@@ -1569,6 +1572,21 @@ def boleta_trabajadora():
     if ver_id:
         filas = [f for f in filas if f["id"] == ver_id]
 
+    accion = request.form.get("accion")
+
+    if accion == "recalcular":
+
+        r_calc = calcular_boleta(Trabajadora.query.get(tid), inicio, fin)
+
+        boleta.tardanzas = r_calc.get("tardanzas", 0)
+        boleta.faltas = r_calc.get("faltas", 0)
+        boleta.modificada_manual = False
+
+        db.session.commit()
+        flash("Valores recalculados automáticamente ✅", "info")
+
+        return redirect(f"/boleta_trabajadora?ver={tid}")
+    
     # ===== GUARDAR EDICION =====
     if request.method == "POST":
 
@@ -1583,6 +1601,14 @@ def boleta_trabajadora():
         # 🔹 recalcular penalidades separadas
         tardanzas = float(request.form.get("tardanzas") or 0)
         faltas = float(request.form.get("faltas") or 0)
+        
+        # valores reales automáticos
+        r_calc = calcular_boleta(Trabajadora.query.get(tid), inicio, fin)
+        tardanzas_auto = r_calc.get("tardanzas", 0)
+        faltas_auto = r_calc.get("faltas", 0)
+
+        # detectar modificación manual
+        modificada = (tardanzas != tardanzas_auto) or (faltas != faltas_auto)
 
         ingresos = sueldo + comision + bonos
         egresos = tardanzas + faltas + adelantos + descuentos
@@ -1611,6 +1637,7 @@ def boleta_trabajadora():
         boleta.subtotal_ingresos = ingresos
         boleta.subtotal_descuentos = egresos
         boleta.total_pagar = total
+        boleta.modificada_manual = modificada
 
         db.session.add(boleta)
         db.session.commit()
