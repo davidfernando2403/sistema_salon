@@ -602,7 +602,12 @@ def ventas():
         fecha_dt = datetime.strptime(fecha, "%Y-%m-%d").date()
         query = query.filter(db.func.date(Venta.fecha)==fecha_dt)
 
-    ventas = query.order_by(Venta.fecha.desc()).paginate(page=page, per_page=10)
+    per_page = request.args.get("per_page", 10, type=int)
+
+    ventas = query.order_by(Venta.fecha.desc()).paginate(
+        page=page,
+        per_page=per_page
+)
 
     return render_template(
         "ventas.html",
@@ -611,7 +616,8 @@ def ventas():
         servicios=Servicio.query.order_by(Servicio.nombre.asc()).all(),
         campo=campo,
         q=q,
-        fecha=fecha
+        fecha=fecha,
+        per_page=per_page
     )
 
 
