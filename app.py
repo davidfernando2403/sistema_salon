@@ -570,11 +570,22 @@ def ventas():
         return redirect("/")
 
     page = request.args.get("page", 1, type=int)
+
     campo = request.args.get("campo")
     q = request.args.get("q")
     fecha = request.args.get("fecha")
 
+    # evitar strings "None"
+    if campo == "None":
+        campo = None
+    if q == "None":
+        q = None
+    if fecha == "None":
+        fecha = None
+
     query = Venta.query
+
+    # ================= FILTRO TEXTO =================
 
     if campo and q:
 
@@ -597,17 +608,24 @@ def ventas():
                 Servicio.nombre.ilike(f"%{q}%")
             )
 
+    # ================= FILTRO FECHA =================
+
     if fecha:
         from datetime import datetime
-        fecha_dt = datetime.strptime(fecha, "%Y-%m-%d").date()
-        query = query.filter(db.func.date(Venta.fecha)==fecha_dt)
+        try:
+            fecha_dt = datetime.strptime(fecha, "%Y-%m-%d").date()
+            query = query.filter(db.func.date(Venta.fecha) == fecha_dt)
+        except:
+            pass
+
+    # ================= PAGINACION =================
 
     per_page = request.args.get("per_page", 10, type=int)
 
     ventas = query.order_by(Venta.fecha.desc()).paginate(
         page=page,
         per_page=per_page
-)
+    )
 
     return render_template(
         "ventas.html",
