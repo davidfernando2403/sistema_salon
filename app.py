@@ -444,6 +444,7 @@ def ventas_historial():
     fecha = request.args.get("fecha")
     page = request.args.get("page", 1, type=int)
     per_page = request.args.get("per_page", 10, type=int)
+
     ventas = Venta.query
 
     from datetime import datetime
@@ -451,30 +452,30 @@ def ventas_historial():
     if campo and q:
 
         if campo == "cliente":
-            query = query.filter(Venta.cliente.ilike(f"%{q}%"))
+            ventas = ventas.filter(Venta.cliente.ilike(f"%{q}%"))
 
         elif campo == "dni":
-            query = query.filter(Venta.dni.ilike(f"%{q}%"))
+            ventas = ventas.filter(Venta.dni.ilike(f"%{q}%"))
 
         elif campo == "telefono":
-            query = query.filter(Venta.telefono.ilike(f"%{q}%"))
+            ventas = ventas.filter(Venta.telefono.ilike(f"%{q}%"))
 
         elif campo == "medio_pago":
-            query = query.filter(Venta.medio_pago.ilike(f"%{q}%"))
+            ventas = ventas.filter(Venta.medio_pago.ilike(f"%{q}%"))
 
         elif campo == "observaciones":
-            query = query.filter(Venta.observaciones.ilike(f"%{q}%"))
+            ventas = ventas.filter(Venta.observaciones.ilike(f"%{q}%"))
 
         elif campo == "precio":
-            query = query.filter(Venta.precio == q)
+            ventas = ventas.filter(Venta.precio == q)
 
         elif campo == "trabajadora":
-            query = query.join(Trabajadora).filter(
+            ventas = ventas.join(Trabajadora).filter(
                 Trabajadora.nombre.ilike(f"%{q}%")
             )
 
         elif campo == "servicio":
-            query = query.join(Servicio).filter(
+            ventas = ventas.join(Servicio).filter(
                 Servicio.nombre.ilike(f"%{q}%")
             )
 
@@ -484,10 +485,16 @@ def ventas_historial():
 
     from sqlalchemy import func
 
-    total_ventas = ventas.with_entities(func.coalesce(func.sum(Venta.precio), 0)).scalar()
+    total_ventas = ventas.with_entities(
+        func.coalesce(func.sum(Venta.precio), 0)
+    ).scalar()
+
     cantidad = ventas.count()
-    
-    ventas = ventas.order_by(Venta.fecha.desc()).paginate(page=page, per_page=per_page)
+
+    ventas = ventas.order_by(Venta.fecha.desc()).paginate(
+        page=page,
+        per_page=per_page
+    )
 
     return render_template(
         "ventas_historial.html",
