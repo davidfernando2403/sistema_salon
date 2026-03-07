@@ -451,21 +451,30 @@ def ventas_historial():
     if campo and q:
 
         if campo == "cliente":
-            ventas = ventas.filter(Venta.cliente.ilike(f"%{q}%"))
+            query = query.filter(Venta.cliente.ilike(f"%{q}%"))
 
         elif campo == "dni":
-            ventas = ventas.filter(Venta.dni.ilike(f"%{q}%"))
+            query = query.filter(Venta.dni.ilike(f"%{q}%"))
 
         elif campo == "telefono":
-            ventas = ventas.filter(Venta.telefono.ilike(f"%{q}%"))
+            query = query.filter(Venta.telefono.ilike(f"%{q}%"))
+
+        elif campo == "medio_pago":
+            query = query.filter(Venta.medio_pago.ilike(f"%{q}%"))
+
+        elif campo == "observaciones":
+            query = query.filter(Venta.observaciones.ilike(f"%{q}%"))
+
+        elif campo == "precio":
+            query = query.filter(Venta.precio == q)
 
         elif campo == "trabajadora":
-            ventas = ventas.join(Trabajadora).filter(
+            query = query.join(Trabajadora).filter(
                 Trabajadora.nombre.ilike(f"%{q}%")
             )
 
         elif campo == "servicio":
-            ventas = ventas.join(Servicio).filter(
+            query = query.join(Servicio).filter(
                 Servicio.nombre.ilike(f"%{q}%")
             )
 
@@ -597,6 +606,15 @@ def ventas():
 
         elif campo == "telefono":
             query = query.filter(Venta.telefono.ilike(f"%{q}%"))
+
+        elif campo == "medio_pago":
+            query = query.filter(Venta.medio_pago.ilike(f"%{q}%"))
+
+        elif campo == "observaciones":
+            query = query.filter(Venta.observaciones.ilike(f"%{q}%"))
+
+        elif campo == "precio":
+            query = query.filter(Venta.precio == q)
 
         elif campo == "trabajadora":
             query = query.join(Trabajadora).filter(
