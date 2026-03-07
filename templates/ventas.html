@@ -28,8 +28,8 @@
 </div>
 
 <div class="col-md-3">
-<input type="text" 
-       name="q" 
+<input type="text"
+       name="q"
        class="form-control"
        value="{{ q or '' }}"
        placeholder="Buscar...">
@@ -49,6 +49,29 @@
 Limpiar
 </a>
 </div>
+
+</form>
+
+<!-- SELECTOR REGISTROS -->
+<form method="GET" class="mb-3">
+
+<input type="hidden" name="campo" value="{{ campo }}">
+<input type="hidden" name="q" value="{{ q }}">
+<input type="hidden" name="fecha" value="{{ fecha }}">
+
+<label class="me-2">Mostrar:</label>
+
+<select name="per_page"
+        onchange="this.form.submit()"
+        class="form-select d-inline w-auto">
+
+<option value="10" {% if per_page==10 %}selected{% endif %}>10</option>
+<option value="25" {% if per_page==25 %}selected{% endif %}>25</option>
+<option value="50" {% if per_page==50 %}selected{% endif %}>50</option>
+
+</select>
+
+<span class="ms-2">registros</span>
 
 </form>
 
@@ -159,27 +182,6 @@ Limpiar
 </td>
 
 </form>
-<form method="GET" class="mb-3">
-
-<input type="hidden" name="campo" value="{{ campo }}">
-<input type="hidden" name="q" value="{{ q }}">
-<input type="hidden" name="fecha" value="{{ fecha }}">
-
-<label>Mostrar:</label>
-
-<select name="per_page"
-        onchange="this.form.submit()"
-        class="form-select d-inline w-auto">
-
-<option value="10" {% if per_page==10 %}selected{% endif %}>10</option>
-<option value="25" {% if per_page==25 %}selected{% endif %}>25</option>
-<option value="50" {% if per_page==50 %}selected{% endif %}>50</option>
-
-</select>
-
-registros
-
-</form>
 
 </tr>
 {% endfor %}
@@ -197,7 +199,8 @@ registros
         page=ventas.prev_num,
         campo=campo,
         q=q,
-        fecha=fecha) }}">
+        fecha=fecha,
+        per_page=per_page) }}">
 Anterior
 </a>
 </li>
@@ -211,7 +214,8 @@ Anterior
         page=num,
         campo=campo,
         q=q,
-        fecha=fecha) }}">
+        fecha=fecha,
+        per_page=per_page) }}">
 {{ num }}
 </a>
 </li>
@@ -225,7 +229,8 @@ Anterior
         page=ventas.next_num,
         campo=campo,
         q=q,
-        fecha=fecha) }}">
+        fecha=fecha,
+        per_page=per_page) }}">
 Siguiente
 </a>
 </li>
