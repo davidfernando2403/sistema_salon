@@ -25,6 +25,79 @@
 <a href="/" class="btn btn-dark">⬅ Volver</a>
 </div>
 
+<!-- ================= VENTAS RAPIDAS ================= -->
+
+<div class="row mb-4">
+
+<div class="col-md-4">
+<div class="card shadow">
+<div class="card-header bg-info text-white">📅 Ventas hoy</div>
+<ul class="list-group list-group-flush">
+{% for nombre, total in resumen_hoy.items() %}
+<li class="list-group-item d-flex justify-content-between">
+{{ nombre }}
+<span>S/ {{ total }}</span>
+</li>
+{% endfor %}
+</ul>
+</div>
+</div>
+
+<div class="col-md-4">
+<div class="card shadow">
+<div class="card-header bg-primary text-white">💰 Ventas quincena</div>
+<ul class="list-group list-group-flush">
+{% for nombre, total in resumen.items() %}
+<li class="list-group-item d-flex justify-content-between">
+{{ nombre }}
+<span>S/ {{ total }}</span>
+</li>
+{% endfor %}
+</ul>
+</div>
+</div>
+
+<div class="col-md-4">
+<div class="card shadow">
+<div class="card-header bg-success text-white">💵 Comisiones</div>
+<ul class="list-group list-group-flush">
+{% for nombre, com in comisiones.items() %}
+<li class="list-group-item d-flex justify-content-between">
+{{ nombre }}
+<span>S/ {{ com }}</span>
+</li>
+{% endfor %}
+</ul>
+</div>
+</div>
+
+</div>
+
+
+<!-- ================= RANKING ================= -->
+
+<div class="row mb-4">
+
+<div class="col-md-12">
+<div class="card shadow">
+<div class="card-header bg-warning">🏆 Ranking quincena</div>
+
+<ol class="list-group list-group-numbered list-group-flush">
+
+{% for nombre, total in ranking %}
+<li class="list-group-item d-flex justify-content-between">
+{{ nombre }}
+<span>S/ {{ total }}</span>
+</li>
+{% endfor %}
+
+</ol>
+
+</div>
+</div>
+
+</div>
+
 <div class="row mb-4">
 
 <div class="col-lg-3">
