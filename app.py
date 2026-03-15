@@ -1548,6 +1548,8 @@ def boleta_trabajadora():
 
     hoy = hoy_peru()
 
+    # ================= CALCULAR PERIODO =================
+
     if mes_sel and quincena_sel:
 
         anio = int(mes_sel.split("-")[0])
@@ -1560,23 +1562,23 @@ def boleta_trabajadora():
             titulo = "1–15"
         else:
             inicio = date(anio, mes, 16)
-            siguiente = date(anio + (mes==12), ((mes)%12)+1, 1)
+            siguiente = date(anio + (mes == 12), ((mes) % 12) + 1, 1)
             fin = siguiente - timedelta(days=1)
             titulo = "16–fin"
 
     else:
-        # fallback automático actual
+
         if hoy.day <= 15:
             inicio = date(hoy.year, hoy.month, 1)
             fin = date(hoy.year, hoy.month, 15)
             titulo = "1–15"
         else:
             inicio = date(hoy.year, hoy.month, 16)
-            siguiente = date(hoy.year + (hoy.month==12), ((hoy.month)%12)+1, 1)
+            siguiente = date(hoy.year + (hoy.month == 12), ((hoy.month) % 12) + 1, 1)
             fin = siguiente - timedelta(days=1)
             titulo = "16–fin"
 
-    # no calcular más allá de hoy
+    # incluir ventas hasta hoy
     fin = min(fin, hoy)
 
     # evitar domingos
@@ -1592,11 +1594,9 @@ def boleta_trabajadora():
     ver_id = int(ver_id) if ver_id else None
 
     hist = request.args.get("hist")
-    
-    mes_sel = request.args.get("mes")
-    quincena_sel = request.args.get("q")
 
     # ================= POST =================
+
     if request.method == "POST":
 
         accion = request.form.get("accion")
@@ -1617,7 +1617,8 @@ def boleta_trabajadora():
                 fecha_fin=fin
             )
 
-        # ===== RECALCULAR AUTOMÁTICO =====
+        # ===== RECALCULAR =====
+
         if accion == "recalcular":
 
             r_calc = calcular_boleta(t, inicio, fin)
@@ -1640,11 +1641,13 @@ def boleta_trabajadora():
             db.session.commit()
 
             flash("Valores recalculados automáticamente ✅", "info")
-            return redirect(
-    f"/boleta_trabajadora?ver={tid}&mes={mes_sel}&q={quincena_sel}"
-)
 
-        # ===== GUARDAR EDICION MANUAL =====
+            if mes_sel and quincena_sel:
+                return redirect(f"/boleta_trabajadora?ver={tid}&mes={mes_sel}&q={quincena_sel}")
+            else:
+                return redirect(f"/boleta_trabajadora?ver={tid}")
+
+        # ===== GUARDAR EDICIÓN =====
 
         sueldo = float(request.form.get("sueldo") or 0)
         comision = float(request.form.get("comision") or 0)
@@ -1654,7 +1657,6 @@ def boleta_trabajadora():
         tardanzas = float(request.form.get("tardanzas") or 0)
         faltas = float(request.form.get("faltas") or 0)
 
-        # valores automáticos reales
         r_calc = calcular_boleta(t, inicio, fin)
         tardanzas_auto = r_calc.get("tardanzas", 0)
         faltas_auto = r_calc.get("faltas", 0)
@@ -1681,9 +1683,11 @@ def boleta_trabajadora():
         db.session.commit()
 
         flash("Boleta actualizada ✅","success")
-        return redirect(
-    f"/boleta_trabajadora?ver={tid}&mes={mes_sel}&q={quincena_sel}"
-)
+
+        if mes_sel and quincena_sel:
+            return redirect(f"/boleta_trabajadora?ver={tid}&mes={mes_sel}&q={quincena_sel}")
+        else:
+            return redirect(f"/boleta_trabajadora?ver={tid}")
 
     # ================= ARMAR TABLA =================
 
