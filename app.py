@@ -1628,8 +1628,13 @@ def boleta_trabajadora():
             boleta.tardanzas = r_calc.get("tardanzas", 0)
             boleta.faltas = r_calc.get("faltas", 0)
 
-            ingresos = boleta.sueldo_base + boleta.comisiones + boleta.bonos
-            egresos = boleta.tardanzas + boleta.faltas + boleta.adelantos + boleta.descuentos_manual
+            ingresos = (boleta.sueldo_base or 0) + (boleta.comisiones or 0) + (boleta.bonos or 0)
+            egresos = (
+                (boleta.tardanzas or 0)
+                + (boleta.faltas or 0)
+                + (boleta.adelantos or 0)
+                + (boleta.descuentos_manual or 0)
+            )
 
             boleta.subtotal_ingresos = ingresos
             boleta.subtotal_descuentos = egresos
