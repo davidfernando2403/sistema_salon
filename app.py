@@ -167,8 +167,8 @@ def calcular_boleta(trabajadora, fecha_inicio, fecha_fin):
 
     ventas = Venta.query.filter(
         Venta.trabajadora_id == trabajadora.id,
-        Venta.fecha >= fecha_inicio,
-        Venta.fecha <= fecha_fin
+        db.func.date(Venta.fecha) >= fecha_inicio,
+        db.func.date(Venta.fecha) <= fecha_fin
     ).all()
 
     total_ventas = sum(v.precio for v in ventas)
@@ -177,8 +177,7 @@ def calcular_boleta(trabajadora, fecha_inicio, fecha_fin):
 
     asistencias = Asistencia.query.filter(
         Asistencia.trabajadora_id == trabajadora.id,
-        Asistencia.fecha >= fecha_inicio,
-        Asistencia.fecha <= fecha_fin
+        Asistencia.fecha.between(fecha_inicio, fecha_fin)
     ).all()
 
     tardanzas = sum(a.penalidad for a in asistencias)
