@@ -1576,6 +1576,10 @@ def boleta_trabajadora():
             fin = siguiente - timedelta(days=1)
             titulo = "16–fin"
 
+    # no calcular más allá de hoy
+    fin = min(fin, hoy)
+
+    # evitar domingos
     if fin.weekday() == 6:
         fin -= timedelta(days=1)
 
