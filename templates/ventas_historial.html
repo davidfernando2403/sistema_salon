@@ -143,6 +143,7 @@ registros
 
 </table>
 
+
 <!-- ================= PAGINACIÓN ================= -->
 
 <div class="mt-4 d-flex justify-content-center">
@@ -151,7 +152,10 @@ registros
 <a class="btn btn-outline-primary me-2"
    href="{{ url_for('ventas_historial',
        page=ventas.prev_num,
-       **request.args) }}">
+       campo=campo,
+       q=q,
+       fecha=fecha,
+       per_page=per_page) }}">
 Anterior
 </a>
 {% endif %}
@@ -164,7 +168,10 @@ Página {{ ventas.page }} de {{ ventas.pages }}
 <a class="btn btn-outline-primary ms-2"
    href="{{ url_for('ventas_historial',
        page=ventas.next_num,
-       **request.args) }}">
+       campo=campo,
+       q=q,
+       fecha=fecha,
+       per_page=per_page) }}">
 Siguiente
 </a>
 {% endif %}
