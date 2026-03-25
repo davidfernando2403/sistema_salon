@@ -40,8 +40,10 @@
 
 <a href="/" class="btn btn-secondary mb-3">⬅ Volver</a>
 
-<a href="{{ url_for('cerrar_quincena') }}"
-   class="btn btn-danger mb-3">🔒 Cerrar quincena</a>
+<a href="/cerrar_quincena?mes={{ inicio.strftime('%Y-%m') }}&q={{ 1 if inicio.day==1 else 2 }}"
+   class="btn btn-danger">
+Cerrar quincena
+</a>
 
 <a href="{{ url_for('boleta_trabajadora',
         hist=1,
