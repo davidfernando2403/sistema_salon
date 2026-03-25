@@ -1762,16 +1762,25 @@ def cerrar_quincena():
     if session.get("rol") != "admin":
         return redirect("/")
 
-    from datetime import datetime, date, timedelta
+    from datetime import date, timedelta
 
-    hoy = hoy_peru()
+    mes_sel = request.args.get("mes")
+    q = request.args.get("q")
 
-    if hoy.day <= 15:
-        inicio = date(hoy.year, hoy.month, 1)
-        fin = date(hoy.year, hoy.month, 15)
+    if not mes_sel or not q:
+        flash("Error: falta mes o quincena","danger")
+        return redirect("/boleta_trabajadora")
+
+    anio = int(mes_sel.split("-")[0])
+    mes = int(mes_sel.split("-")[1])
+    q = int(q)
+
+    if q == 1:
+        inicio = date(anio, mes, 1)
+        fin = date(anio, mes, 15)
     else:
-        inicio = date(hoy.year, hoy.month, 16)
-        siguiente = date(hoy.year + (hoy.month==12), ((hoy.month)%12)+1, 1)
+        inicio = date(anio, mes, 16)
+        siguiente = date(anio + (mes==12), ((mes)%12)+1, 1)
         fin = siguiente - timedelta(days=1)
 
     boletas = BoletaTrabajadora.query.filter_by(
@@ -1779,14 +1788,19 @@ def cerrar_quincena():
         fecha_fin=fin
     ).all()
 
+    if not boletas:
+        flash("No hay boletas para cerrar en este periodo ⚠️","warning")
+        return redirect(f"/boleta_trabajadora?mes={mes_sel}&q={q}")
+
     for b in boletas:
         b.cerrada = True
         b.fecha_cierre = ahora_peru()
 
     db.session.commit()
 
-    flash("Quincena cerrada. Boletas marcadas como pagadas 🔒","success")
-    return redirect("/boleta_trabajadora")
+    flash("Quincena cerrada correctamente 🔒","success")
+
+    return redirect(f"/boleta_trabajadora?mes={mes_sel}&q={q}")
 
 @app.route("/boleta_pdf/<int:trabajadora_id>")
 def boleta_pdf(trabajadora_id):
