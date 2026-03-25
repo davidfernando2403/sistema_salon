@@ -1577,13 +1577,6 @@ def boleta_trabajadora():
             fin = siguiente - timedelta(days=1)
             titulo = "16–fin"
 
-    # incluir ventas hasta hoy
-    fin = min(fin, hoy)
-
-    # evitar domingos
-    if fin.weekday() == 6:
-        fin -= timedelta(days=1)
-
     trabajadoras = Trabajadora.query.filter_by(activo=True).all()
 
     edit_id = request.args.get("edit")
@@ -1768,7 +1761,7 @@ def cerrar_quincena():
     q = request.args.get("q")
 
     if not mes_sel or not q:
-        flash("Error: falta mes o quincena","danger")
+        flash("Faltan parámetros","danger")
         return redirect("/boleta_trabajadora")
 
     anio = int(mes_sel.split("-")[0])
@@ -1783,13 +1776,22 @@ def cerrar_quincena():
         siguiente = date(anio + (mes==12), ((mes)%12)+1, 1)
         fin = siguiente - timedelta(days=1)
 
-    boletas = BoletaTrabajadora.query.filter_by(
-        fecha_inicio=inicio,
-        fecha_fin=fin
+    boletas = BoletaTrabajadora.query.filter(
+        BoletaTrabajadora.fecha_inicio == inicio,
+        BoletaTrabajadora.cerrada == False
     ).all()
-
+    # 🔍 DEBUG
+    print("Boletas encontradas:", len(boletas))
+    for b in boletas:
+        print(
+            "Trabajadora:", b.trabajadora_id,
+            "Inicio:", b.fecha_inicio,
+            "Fin:", b.fecha_fin,
+            "Cerrada:", b.cerrada
+        )
+        
     if not boletas:
-        flash("No hay boletas para cerrar en este periodo ⚠️","warning")
+        flash("No hay boletas para cerrar ⚠️","warning")
         return redirect(f"/boleta_trabajadora?mes={mes_sel}&q={q}")
 
     for b in boletas:
@@ -1799,7 +1801,6 @@ def cerrar_quincena():
     db.session.commit()
 
     flash("Quincena cerrada correctamente 🔒","success")
-
     return redirect(f"/boleta_trabajadora?mes={mes_sel}&q={q}")
 
 @app.route("/boleta_pdf/<int:trabajadora_id>")

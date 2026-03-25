@@ -40,16 +40,20 @@
 
 <a href="/" class="btn btn-secondary mb-3">⬅ Volver</a>
 
-<a href="/cerrar_quincena?mes={{ inicio.strftime('%Y-%m') }}&q={{ 1 if inicio.day==1 else 2 }}"
+<a href="{{ url_for('cerrar_quincena',
+        mes=inicio.strftime('%Y-%m'),
+        q=1 if inicio.day==1 else 2) }}"
    class="btn btn-danger">
 Cerrar quincena
 </a>
 
 <a href="{{ url_for('boleta_trabajadora',
         hist=1,
-        mes=request.args.get('mes'),
-        q=request.args.get('q')) }}"
-   class="btn btn-dark mb-3">📚 Históricos</a>
+        mes=request.args.get('mes') or inicio.strftime('%Y-%m'),
+        q=request.args.get('q') or (1 if inicio.day==1 else 2)) }}"
+   class="btn btn-dark mb-3">
+📚 Históricos
+</a>
 
 {% if hist %}
 
@@ -109,8 +113,8 @@ PDF
 {% for f in todas_trabajadoras %}
 <a href="{{ url_for('boleta_trabajadora',
         ver=f.id,
-        mes=request.args.get('mes'),
-        q=request.args.get('q')) }}"
+        mes=request.args.get('mes') or inicio.strftime('%Y-%m'),
+        q=request.args.get('q') or (1 if inicio.day==1 else 2)) }}"
    class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
     {{ f.nombre }}
     <span class="btn btn-sm btn-outline-primary">Ver boleta</span>
@@ -160,8 +164,8 @@ PDF
    href="{{ url_for('boleta_trabajadora',
         ver=f.id,
         edit=f.id,
-        mes=request.args.get('mes'),
-        q=request.args.get('q')) }}">
+        mes=request.args.get('mes') or inicio.strftime('%Y-%m'),
+q=request.args.get('q') or (1 if inicio.day==1 else 2)) }}">
 Editar
 </a>
 {% else %}
