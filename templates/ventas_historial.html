@@ -37,6 +37,9 @@
 
 <div class="col-md-3">
 <select name="campo" class="form-select">
+    <option value="" selected disabled>
+-- Seleccione  --
+</option>
 <option value="cliente" {% if campo=="cliente" %}selected{% endif %}>Cliente</option>
 <option value="servicio" {% if campo=="servicio" %}selected{% endif %}>Servicio</option>
 <option value="trabajadora" {% if campo=="trabajadora" %}selected{% endif %}>Trabajadora</option>
