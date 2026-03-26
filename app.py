@@ -148,7 +148,39 @@ class Factura(db.Model):
     monto = db.Column(db.Float)
     fecha = db.Column(db.Date)
 
+# 👉 FUNCIONES DE NEGOCIO
 
+# -------- LOGICA NEGOCIO --------
+
+def obtener_kpis_dashboard():
+
+    from sqlalchemy import extract, func
+
+    hoy = ahora_peru()
+    anio = hoy.year
+    mes = hoy.month
+
+    # ================= BOLETAS =================
+    total_boletas = db.session.query(
+        func.coalesce(func.sum(Boleta.monto), 0)
+    ).filter(
+        extract("year", Boleta.fecha) == anio,
+        extract("month", Boleta.fecha) == mes
+    ).scalar()
+
+    # ================= FACTURAS =================
+    total_facturas = db.session.query(
+        func.coalesce(func.sum(Factura.monto), 0)
+    ).filter(
+        extract("year", Factura.fecha) == anio,
+        extract("month", Factura.fecha) == mes
+    ).scalar()
+
+    return {
+        "total_boletas": round(total_boletas, 2),
+        "total_facturas": round(total_facturas, 2),
+        "mes_actual": f"{anio}-{str(mes).zfill(2)}"
+    }
 
 def trabajadoras_activas():
     return Trabajadora.query.filter_by(activo=True).order_by(Trabajadora.nombre).all()
@@ -772,6 +804,7 @@ def dashboard():
 
     from datetime import datetime, timedelta
     from sqlalchemy import extract
+    data_kpis = obtener_kpis_dashboard()
 
     hoy = ahora_peru()
     dia = hoy.day
@@ -967,9 +1000,23 @@ def dashboard():
         nombre_trabajadora_prod=nombre_trabajadora_prod,
         desde_prod=desde_prod,
         hasta_prod=hasta_prod,
-        total_boletas_mes_actual=total_boletas_mes_actual
+        total_boletas_mes_actual=total_boletas_mes_actual,
+        **data_kpis
     )
 
+@app.route("/reportes")
+def reportes():
+
+    if "user_id" not in session:
+        return redirect("/login")
+
+    data_kpis = obtener_kpis_dashboard()
+
+    return render_template(
+        "reportes.html", 
+        **data_kpis,
+        trabajadoras=trabajadoras_activas()
+        )
 
 @app.route("/usuarios")
 def usuarios():
