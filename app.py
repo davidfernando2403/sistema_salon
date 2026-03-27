@@ -459,12 +459,15 @@ def ventas_nueva():
     ventas = Venta.query.filter(
         db.func.date(Venta.fecha)==hoy
     ).order_by(Venta.fecha.desc()).all()
+    
+    total_hoy = round(sum(v.precio for v in ventas), 2)
 
     return render_template(
         "venta_nueva.html",
         ventas=ventas,
         trabajadoras=trabajadoras_activas(),
-        servicios=Servicio.query.order_by(Servicio.nombre.asc()).all()
+        servicios=Servicio.query.order_by(Servicio.nombre.asc()).all(),
+        total_hoy=total_hoy 
     )
 
 @app.route("/ventas/historial")

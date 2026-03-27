@@ -125,6 +125,19 @@ Guardar venta
         <hr>
 
         <h5 class="mt-4">📋 Ventas registradas</h5>
+        <div class="alert alert-success d-flex justify-content-between align-items-center">
+
+    <div>
+        💰 Total vendido hoy:
+        <strong>S/ {{ "%.2f"|format(total_hoy) }}</strong>
+    </div>
+
+    <div>
+        📊 Cantidad de ventas:
+        <strong>{{ ventas|length }}</strong>
+    </div>
+
+</div>
 
 <div class="text-center mt-3">
     <a href="/ventas/historial" class="btn btn-outline-dark">
