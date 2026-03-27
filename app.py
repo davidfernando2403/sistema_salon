@@ -1468,6 +1468,8 @@ def graficos():
 
     pago_labels = [p[0].capitalize() for p in pagos]
     pago_totales = [float(p[1] or 0) for p in pagos]
+    
+    top_servicios = servicios[:10]
 
     return render_template(
         "graficos.html",
@@ -1491,6 +1493,9 @@ def graficos():
         
         orden=orden,
         mes_serv=mes_serv,
+        
+        servicios=servicios,
+        top_servicios=top_servicios,
         
         mes_pagos=mes_pagos
     )
