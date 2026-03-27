@@ -2,243 +2,238 @@
 <html>
 
 <head>
-       <title>Gráficos</title>
+    <title>Gráficos</title>
 
-       <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-       <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 
 <body class="bg-light">
 
-       <div class="container mt-4">
+<div class="container mt-4">
 
-              <h2 class="mb-4">📊 Análisis Gráfico</h2>
+    <h2 class="mb-4">📊 Análisis Gráfico</h2>
 
-              <a href="{{ url_for('dashboard', **request.args) }}" class="btn btn-secondary mb-4">
-                     ⬅ Volver
-              </a>
+    <a href="{{ url_for('dashboard', **request.args) }}" class="btn btn-secondary mb-4">
+        ⬅ Volver
+    </a>
 
-              <!-- ================= CAMBIAR MES GENERAL ================= -->
+    <!-- ================= CAMBIAR MES ================= -->
 
-              <form method="GET" class="row mb-4">
+    <form method="GET" class="row mb-4">
 
-                     {% for key, value in request.args.items() %}
-                     {% if key != 'mes' %}
-                     <input type="hidden" name="{{ key }}" value="{{ value }}">
-                     {% endif %}
-                     {% endfor %}
+        {% for key, value in request.args.items() %}
+        {% if key != 'mes' %}
+        <input type="hidden" name="{{ key }}" value="{{ value }}">
+        {% endif %}
+        {% endfor %}
 
-                     <div class="col-md-3">
-                            <input type="month" name="mes" value="{{ mes_sel }}" class="form-control">
-                     </div>
+        <div class="col-md-3">
+            <input type="month" name="mes" value="{{ mes_sel }}" class="form-control">
+        </div>
 
-                     <div class="col-md-2">
-                            <button class="btn btn-primary w-100">Cambiar mes</button>
-                     </div>
+        <div class="col-md-2">
+            <button class="btn btn-primary w-100">Cambiar mes</button>
+        </div>
 
-              </form>
+    </form>
 
-              <h4>Total ventas por día</h4>
-              <canvas id="ventasDia"></canvas>
+    <!-- ================= GRAFICOS ================= -->
 
-              <hr>
+    <h4>Total ventas por día</h4>
+    <canvas id="ventasDia"></canvas>
 
-              <h4>Producción diaria por trabajadora</h4>
-              <canvas id="prodTrab"></canvas>
+    <hr>
 
-              <hr>
+    <h4>Producción diaria por trabajadora</h4>
+    <canvas id="prodTrab"></canvas>
 
-              <h4>Producción mes a mes</h4>
-              <canvas id="mesMes"></canvas>
+    <hr>
 
-              <hr>
+    <h4>Producción mes a mes</h4>
+    <canvas id="mesMes"></canvas>
 
-              <h4>Servicios más realizados</h4>
+    <hr>
 
-              <p class="text-muted">
-                     Mostrando datos de {{ mes_serv }} ordenado por {{ orden }}
-              </p>
+    <!-- ================= SERVICIOS ================= -->
 
-              <form method="GET" class="row mb-3">
+    <h4>Servicios más realizados</h4>
 
-                     {% for key, value in request.args.items() %}
-                     {% if key not in ['mes_servicios','orden'] %}
-                     <input type="hidden" name="{{ key }}" value="{{ value }}">
-                     {% endif %}
-                     {% endfor %}
+    <p class="text-muted">
+        Mostrando datos de {{ mes_serv }} ordenado por {{ orden }}
+    </p>
 
-                     <div class="col-md-4">
-                            <input type="month" name="mes_servicios" value="{{ mes_serv }}" class="form-control">
-                     </div>
+    <form method="GET" class="row mb-3">
 
-                     <div class="col-md-4">
-                            <select name="orden" class="form-select">
-                                   <option value="cantidad" {% if orden=="cantidad" %}selected{% endif %}>
-                                          Ordenar por cantidad
-                                   </option>
-                                   <option value="total" {% if orden=="total" %}selected{% endif %}>
-                                          Ordenar por total S/
-                                   </option>
-                            </select>
-                     </div>
+        {% for key, value in request.args.items() %}
+        {% if key not in ['mes_servicios','orden'] %}
+        <input type="hidden" name="{{ key }}" value="{{ value }}">
+        {% endif %}
+        {% endfor %}
 
-                     <div class="col-md-4">
-                            <button class="btn btn-dark w-100">Aplicar</button>
-                     </div>
+        <div class="col-md-4">
+            <input type="month" name="mes_servicios" value="{{ mes_serv }}" class="form-control">
+        </div>
 
-              </form>
+        <div class="col-md-4">
+            <select name="orden" class="form-select">
+                <option value="cantidad" {% if orden=="cantidad" %}selected{% endif %}>
+                    Ordenar por cantidad
+                </option>
+                <option value="total" {% if orden=="total" %}selected{% endif %}>
+                    Ordenar por total S/
+                </option>
+            </select>
+        </div>
 
-              <canvas id="servicios"></canvas>
+        <div class="col-md-4">
+            <button class="btn btn-dark w-100">Aplicar</button>
+        </div>
 
-                            <div class="card mt-4">
-                     <div class="card-body">
+    </form>
 
-                            <h5>📊 Servicios más realizados</h5>
-                            <p class="text-muted">
-                                   Mostrando datos de {{ mes_sel }} ordenado por {{ orden }}
-                            </p>
+    <!-- 🔍 BUSCADOR -->
+    <input type="text" id="buscador" class="form-control mb-3" placeholder="Buscar servicio...">
 
-                            <div class="table-responsive">
+    <!-- TABLA -->
+    <div class="card">
+        <div class="card-body">
 
-                                   <table class="table table-striped table-hover">
+            <div class="table-responsive">
 
-                                          <thead class="table-dark">
-                                                 <tr>
-                                                        <th>Servicio</th>
-                                                        <th>Cantidad</th>
-                                                        <th>Total S/</th>
-                                                 </tr>
-                                          </thead>
+                <table class="table table-striped table-hover" id="tablaServicios">
 
-                                          <tbody>
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Servicio</th>
+                            <th>Cantidad</th>
+                            <th>Total S/</th>
+                        </tr>
+                    </thead>
 
-                                                 {% for s in servicios %}
-                                                 <tr>
-                                                        <td>{{ s.nombre }}</td>
-                                                        <td>{{ s.cantidad }}</td>
-                                                        <td>S/ {{ "%.2f"| format(s.total) }}</td>
-                                                 </tr>
-                                                 {% endfor %}
+                    <tbody>
+                    {% for s in servicios %}
+                        <tr>
+                            <td>{{ s.nombre }}</td>
+                            <td>{{ s.cantidad }}</td>
+                            <td>S/ {{ "%.2f"|format(s.total) }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
 
-                                          </tbody>
+                </table>
 
-                                   </table>
+            </div>
 
-                            </div>
+        </div>
+    </div>
 
-                     </div>
-              </div>
-              
+    <hr>
 
-              <hr>
+    <!-- ================= METODO PAGO ================= -->
 
-              <h4>Ventas por método de pago</h4>
+    <h4>Ventas por método de pago</h4>
 
-              <form method="GET" class="row mb-3">
+    <form method="GET" class="row mb-3">
 
-                     {% for key, value in request.args.items() %}
-                     {% if key != 'mes_pagos' %}
-                     <input type="hidden" name="{{ key }}" value="{{ value }}">
-                     {% endif %}
-                     {% endfor %}
+        {% for key, value in request.args.items() %}
+        {% if key != 'mes_pagos' %}
+        <input type="hidden" name="{{ key }}" value="{{ value }}">
+        {% endif %}
+        {% endfor %}
 
-                     <div class="col-md-4">
-                            <input type="month" name="mes_pagos" value="{{ mes_pagos }}" class="form-control">
-                     </div>
+        <div class="col-md-4">
+            <input type="month" name="mes_pagos" value="{{ mes_pagos }}" class="form-control">
+        </div>
 
-                     <div class="col-md-2">
-                            <button class="btn btn-dark w-100">Aplicar</button>
-                     </div>
+        <div class="col-md-2">
+            <button class="btn btn-dark w-100">Aplicar</button>
+        </div>
 
-              </form>
+    </form>
 
-              <canvas id="metodoPago"></canvas>
+    <canvas id="metodoPago"></canvas>
 
-       </div>
+</div>
 
-       <script>
+<script>
 
-              // 1 Ventas día
-              new Chart(ventasDia, {
-                     type: 'line',
-                     data: {
-                            labels: {{ dias| tojson }},
-                     datasets: [{
-                            label: 'Ventas S/',
-                            data: {{ totales_dia| tojson }},
-                     borderColor: 'blue',
-                     fill: false
-}]
-}
+// ================= GRAFICOS =================
+
+// Ventas día
+new Chart(document.getElementById('ventasDia'), {
+    type: 'line',
+    data: {
+        labels: {{ dias|tojson }},
+        datasets: [{
+            label: 'Ventas S/',
+            data: {{ totales_dia|tojson }},
+            borderColor: 'blue',
+            fill: false
+        }]
+    }
 });
 
-              // 2 Producción trabajadora
-              new Chart(prodTrab, {
-                     type: 'bar',
-                     data: {
-                            labels: {{ prod_labels| tojson }},
-                     datasets: {{ prod_datasets| tojson }}
-},
-                     options: { scales: { y: { beginAtZero: true } } }
+// Producción trabajadora
+new Chart(document.getElementById('prodTrab'), {
+    type: 'bar',
+    data: {
+        labels: {{ prod_labels|tojson }},
+        datasets: {{ prod_datasets|tojson }}
+    },
+    options: { scales: { y: { beginAtZero: true } } }
 });
 
-              // 3 Mes a mes
-              new Chart(mesMes, {
-                     type: 'bar',
-                     data: {
-                            labels: {{ meses_labels| tojson }},
-                     datasets: [{
-                            label: 'Producción S/',
-                            data: {{ meses_totales| tojson }},
-                     backgroundColor: 'green'
-}]
-}
+// Mes a mes
+new Chart(document.getElementById('mesMes'), {
+    type: 'bar',
+    data: {
+        labels: {{ meses_labels|tojson }},
+        datasets: [{
+            label: 'Producción S/',
+            data: {{ meses_totales|tojson }},
+            backgroundColor: 'green'
+        }]
+    }
 });
-// 4 Servicios más realizados
 
-              // 5 Método de pago
+// Método de pago
+const pagoLabels = {{ pago_labels|tojson }};
+const pagoTotales = {{ pago_totales|tojson }};
 
-              const pagoLabels = {{ pago_labels| tojson }};
-              const pagoTotales = {{ pago_totales| tojson }};
+const coloresPago = pagoLabels.map(p => {
+    p = p.toLowerCase();
+    if (p.includes("plin")) return "#2fa36b";
+    if (p.includes("yape")) return "#7b5aa6";
+    if (p.includes("tarjeta")) return "#f0a04b";
+    if (p.includes("efectivo")) return "#5dade2";
+    return "#adb5bd";
+});
 
-              const coloresPago = pagoLabels.map(p => {
+new Chart(document.getElementById('metodoPago'), {
+    type: 'bar',
+    data: {
+        labels: pagoLabels,
+        datasets: [{
+            label: 'Total S/',
+            data: pagoTotales,
+            backgroundColor: coloresPago
+        }]
+    }
+});
 
-                     p = p.toLowerCase();
+// 🔍 BUSCADOR EN TABLA
+document.getElementById("buscador").addEventListener("keyup", function() {
+    let filtro = this.value.toLowerCase();
+    let filas = document.querySelectorAll("#tablaServicios tbody tr");
 
-                     if (p.includes("plin")) return "#2fa36b";
-                     if (p.includes("yape")) return "#7b5aa6";
-                     if (p.includes("tarjeta")) return "#f0a04b";
-                     if (p.includes("efectivo")) return "#5dade2";
+    filas.forEach(f => {
+        let texto = f.innerText.toLowerCase();
+        f.style.display = texto.includes(filtro) ? "" : "none";
+    });
+});
 
-                     return "#adb5bd";
-              });
-
-              new Chart(document.getElementById('metodoPago'), {
-                     type: 'bar',
-                     data: {
-                            labels: pagoLabels,
-                            datasets: [{
-                                   label: 'Total S/',
-                                   data: pagoTotales,
-                                   backgroundColor: coloresPago
-                            }]
-                     },
-                     options: {
-                            responsive: true,
-                            scales: {
-                                   y: {
-                                          beginAtZero: true,
-                                          title: {
-                                                 display: true,
-                                                 text: 'Monto S/'
-                                          }
-                                   }
-                            }
-                     }
-              });
-
-       </script>
+</script>
 
 </body>
-
 </html>
