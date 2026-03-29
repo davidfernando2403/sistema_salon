@@ -152,6 +152,92 @@ class Factura(db.Model):
 
 # -------- LOGICA NEGOCIO --------
 
+def obtener_filtros_reportes():
+
+    from datetime import datetime, timedelta
+    from sqlalchemy import extract
+
+    desde = request.args.get("desde")
+    hasta = request.args.get("hasta")
+    mes_sel = request.args.get("mes")
+    fecha_dia = request.args.get("dia")
+
+    trab_sel = request.args.get("trabajadora_prod")
+    desde_prod = request.args.get("desde_prod")
+    hasta_prod = request.args.get("hasta_prod")
+
+    total_rango = None
+    total_mes_seleccionado = None
+    total_dia_seleccionado = None
+    total_produccion = None
+    nombre_trabajadora_prod = None
+
+    # ================= RANGO =================
+    if desde and hasta:
+        d1 = datetime.strptime(desde,"%Y-%m-%d")
+        d2 = datetime.strptime(hasta,"%Y-%m-%d") + timedelta(days=1)
+
+        ventas = Venta.query.filter(
+            Venta.fecha >= d1,
+            Venta.fecha < d2
+        ).all()
+
+        total_rango = round(sum(v.precio for v in ventas),2)
+
+    # ================= MES =================
+    if mes_sel:
+        a = int(mes_sel.split("-")[0])
+        m = int(mes_sel.split("-")[1])
+
+        ventas = Venta.query.filter(
+            extract("year",Venta.fecha)==a,
+            extract("month",Venta.fecha)==m
+        ).all()
+
+        total_mes_seleccionado = round(sum(v.precio for v in ventas),2)
+
+    # ================= DIA =================
+    if fecha_dia:
+        dt = datetime.strptime(fecha_dia,"%Y-%m-%d").date()
+
+        ventas = Venta.query.filter(
+            db.func.date(Venta.fecha)==dt
+        ).all()
+
+        total_dia_seleccionado = round(sum(v.precio for v in ventas),2)
+
+    # ================= PRODUCCION =================
+    if trab_sel and desde_prod and hasta_prod:
+        d1 = datetime.strptime(desde_prod,"%Y-%m-%d")
+        d2 = datetime.strptime(hasta_prod,"%Y-%m-%d")
+
+        ventas = Venta.query.filter(
+            Venta.trabajadora_id==trab_sel,
+            Venta.fecha>=d1,
+            Venta.fecha<=d2
+        ).all()
+
+        total_produccion = round(sum(v.precio for v in ventas),2)
+
+        t = Trabajadora.query.get(trab_sel)
+        nombre_trabajadora_prod = t.nombre if t else None
+
+    return {
+        "total_rango": total_rango,
+        "total_mes_seleccionado": total_mes_seleccionado,
+        "total_dia_seleccionado": total_dia_seleccionado,
+        "total_produccion": total_produccion,
+        "nombre_trabajadora_prod": nombre_trabajadora_prod,
+
+        "desde": desde,
+        "hasta": hasta,
+        "mes_sel": mes_sel,
+        "fecha_dia": fecha_dia,
+        "trabajadora_prod": trab_sel,
+        "desde_prod": desde_prod,
+        "hasta_prod": hasta_prod
+    }
+
 def obtener_kpis_dashboard():
 
     from sqlalchemy import extract, func
@@ -798,16 +884,17 @@ def comisiones():
 from sqlalchemy import extract, func
 from datetime import datetime
 
-
 @app.route("/dashboard")
 def dashboard():
 
     if "user_id" not in session:
         return redirect("/login")
 
-    from datetime import datetime, timedelta
-    from sqlalchemy import extract
+    from datetime import timedelta
+    from sqlalchemy import extract, func
+
     data_kpis = obtener_kpis_dashboard()
+    filtros = obtener_filtros_reportes()
 
     hoy = ahora_peru()
     dia = hoy.day
@@ -838,55 +925,28 @@ def dashboard():
 
     total_quincena = round(sum(resumen.values()),2)
 
-    # ================= COMISIONES =================
+    # ================= HOY =================
 
-    comisiones = {}
+    ventas_hoy = Venta.query.filter(
+        db.func.date(Venta.fecha)==hoy
+    ).all()
 
-    for nombre,total in resumen.items():
-
-        if nombre=="Avril":
-            com = total*0.13 if total>=3000 else total*0.10 if total>=1500 else 0
-        elif nombre=="Mariana":
-            com = total*0.13 if total>=1700 else total*0.10 if total>=1000 else 0
-        elif nombre=="Laurent":
-            com = total*0.40
-        elif nombre=="Maju":
-            com = total*0.50
-        else:
-            com = 0
-
-        comisiones[nombre]=round(com,2)
-
-    ranking = sorted(resumen.items(), key=lambda x:x[1], reverse=True)
-
-# ================= HOY =================
-
-    from sqlalchemy import func
-    from datetime import date
-
-    hoy = hoy_peru()
-
-    # total vendido hoy
-    ventas_hoy = Venta.query.filter(db.func.date(Venta.fecha)==hoy).all()
     total_hoy = round(sum(v.precio for v in ventas_hoy),2)
 
-    # TODAS las trabajadoras
     trabajadoras_hoy = Trabajadora.query.filter_by(activo=True).order_by(Trabajadora.nombre).all()
 
-    # ventas de hoy agrupadas
     ventas_por_trabajadora = dict(db.session.query(
         Trabajadora.id,
         func.coalesce(func.sum(Venta.precio),0)
-    ).join(Venta)\
-    .filter(db.func.date(Venta.fecha)==hoy, Trabajadora.activo==True)\
-    .group_by(Trabajadora.id)\
+    ).join(Venta)
+    .filter(db.func.date(Venta.fecha)==hoy, Trabajadora.activo==True)
+    .group_by(Trabajadora.id)
     .all())
 
-    # construir resumen completo (incluye ceros)
-    resumen_hoy={}
-
+    resumen_hoy = {}
     for t in trabajadoras_hoy:
-        resumen_hoy[t.nombre]=float(ventas_por_trabajadora.get(t.id,0))
+        resumen_hoy[t.nombre] = float(ventas_por_trabajadora.get(t.id,0))
+
     # ================= MES ACTUAL =================
 
     ventas_mes_actual = Venta.query.filter(
@@ -896,130 +956,44 @@ def dashboard():
 
     total_mes_actual = round(sum(v.precio for v in ventas_mes_actual),2)
 
-    meses = {
-        1:"Enero",2:"Febrero",3:"Marzo",4:"Abril",5:"Mayo",6:"Junio",
-        7:"Julio",8:"Agosto",9:"Septiembre",10:"Octubre",11:"Noviembre",12:"Diciembre"
-    }
+    # ================= BOLETAS =================
 
-    nombre_mes = meses[mes_actual]
-
-    # ================= KPI BOLETAS MES ACTUAL =================
-
-    boletas_mes_actual = Boleta.query.filter(
-        extract("year", Boleta.fecha)==anio_actual,
-        extract("month", Boleta.fecha)==mes_actual
-    ).all()
-
-    total_boletas_mes_actual = round(sum(b.monto for b in boletas_mes_actual),2)
-
-    # ================= FILTRO RANGO =================
-
-    desde=request.args.get("desde")
-    hasta=request.args.get("hasta")
-    total_rango=None
-
-    if desde and hasta:
-        d1=datetime.strptime(desde,"%Y-%m-%d")
-        d2=datetime.strptime(hasta,"%Y-%m-%d")+timedelta(days=1)
-
-        ventas=Venta.query.filter(Venta.fecha>=d1,Venta.fecha<d2).all()
-        total_rango=round(sum(v.precio for v in ventas),2)
-
-    # ================= MES SELECCIONADO =================
-
-    mes_sel=request.args.get("mes")
-    total_mes_seleccionado=None
-
-    if mes_sel:
-        a=int(mes_sel.split("-")[0])
-        m=int(mes_sel.split("-")[1])
-
-        ventas=Venta.query.filter(extract("year",Venta.fecha)==a,extract("month",Venta.fecha)==m).all()
-        total_mes_seleccionado=round(sum(v.precio for v in ventas),2)
-
-    # ================= BOLETAS / FACTURAS =================
-
-    mes_boleta=request.args.get("mes_boleta") or f"{anio_actual}-{str(mes_actual).zfill(2)}"
-    mes_factura=request.args.get("mes_factura") or f"{anio_actual}-{str(mes_actual).zfill(2)}"
-
-    a,m=map(int,mes_boleta.split("-"))
-    total_boletas_mes=round(sum(b.monto for b in Boleta.query.filter(extract("year",Boleta.fecha)==a,extract("month",Boleta.fecha)==m)),2)
-
-    a,m=map(int,mes_factura.split("-"))
-    total_facturas_mes=round(sum(f.monto for f in Factura.query.filter(extract("year",Factura.fecha)==a,extract("month",Factura.fecha)==m)),2)
-
-    # ================= TOTAL DIA =================
-
-    fecha_dia=request.args.get("dia")
-    total_dia_seleccionado=None
-
-    if fecha_dia:
-        dt=datetime.strptime(fecha_dia,"%Y-%m-%d").date()
-        ventas=Venta.query.filter(db.func.date(Venta.fecha)==dt).all()
-        total_dia_seleccionado=round(sum(v.precio for v in ventas),2)
-
-    # ================= PRODUCCION =================
-
-    trab_sel=request.args.get("trabajadora_prod")
-    desde_prod=request.args.get("desde_prod")
-    hasta_prod=request.args.get("hasta_prod")
-
-    total_produccion=None
-    nombre_trabajadora_prod=None
-
-    if trab_sel and desde_prod and hasta_prod:
-        d1=datetime.strptime(desde_prod,"%Y-%m-%d")
-        d2=datetime.strptime(hasta_prod,"%Y-%m-%d")
-
-        ventas=Venta.query.filter(Venta.trabajadora_id==trab_sel,Venta.fecha>=d1,Venta.fecha<=d2).all()
-        total_produccion=round(sum(v.precio for v in ventas),2)
-
-        nombre_trabajadora_prod=Trabajadora.query.get(trab_sel).nombre
+    total_boletas_mes_actual = round(sum(
+        b.monto for b in Boleta.query.filter(
+            extract("year", Boleta.fecha)==anio_actual,
+            extract("month", Boleta.fecha)==mes_actual
+        )
+    ),2)
 
     return render_template(
         "dashboard.html",
         total_mes=total_quincena,
         resumen=resumen,
-        comisiones=comisiones,
-        ranking=ranking,
         titulo_quincena=titulo_quincena,
         total_hoy=total_hoy,
         resumen_hoy=resumen_hoy,
-        total_rango=total_rango,
-        total_mes_seleccionado=total_mes_seleccionado,
-        desde=desde,
-        hasta=hasta,
-        mes_sel=mes_sel,
-        total_boletas_mes=total_boletas_mes,
-        total_facturas_mes=total_facturas_mes,
-        mes_boleta=mes_boleta,
-        mes_factura=mes_factura,
         total_mes_actual=total_mes_actual,
-        nombre_mes=nombre_mes,
-        fecha_dia=fecha_dia,
-        total_dia_seleccionado=total_dia_seleccionado,
-        trabajadoras=trabajadoras_activas(),
-        total_produccion=total_produccion,
-        nombre_trabajadora_prod=nombre_trabajadora_prod,
-        desde_prod=desde_prod,
-        hasta_prod=hasta_prod,
         total_boletas_mes_actual=total_boletas_mes_actual,
-        **data_kpis
+        trabajadoras=trabajadoras_activas(),
+        **data_kpis,
+        **filtros
     )
-
-@app.route("/reportes")
+    
+@app.route("/reportes") 
 def reportes():
 
     if "user_id" not in session:
         return redirect("/login")
 
     data_kpis = obtener_kpis_dashboard()
+    filtros = obtener_filtros_reportes()
 
     return render_template(
         "reportes.html", 
         **data_kpis,
+        **filtros,
         trabajadoras=trabajadoras_activas()
-        )
+    )
 
 @app.route("/usuarios")
 def usuarios():

@@ -20,8 +20,8 @@
     <div class="row mb-4">
 
         <div class="col-md-6">
-            <div class="card shadow-sm">
-                <div class="card-body text-center">
+            <div class="card shadow-sm text-center">
+                <div class="card-body">
                     <h6>💰 Boletas (mes actual)</h6>
                     <h4 class="text-success">S/ {{ "%.2f"|format(total_boletas) }}</h4>
                 </div>
@@ -29,8 +29,8 @@
         </div>
 
         <div class="col-md-6">
-            <div class="card shadow-sm">
-                <div class="card-body text-center">
+            <div class="card shadow-sm text-center">
+                <div class="card-body">
                     <h6>🧾 Facturas (mes actual)</h6>
                     <h4 class="text-primary">S/ {{ "%.2f"|format(total_facturas) }}</h4>
                 </div>
@@ -46,16 +46,16 @@
 
             <h5>📅 Ventas por rango</h5>
 
-            <form method="GET" action="/dashboard" class="row g-2">
+            <form method="GET" action="{{ url_for('reportes') }}" class="row g-2">
 
                 <div class="col-md-4">
                     <label>Desde</label>
-                    <input type="date" name="desde" class="form-control">
+                    <input type="date" name="desde" value="{{ desde or '' }}" class="form-control">
                 </div>
 
                 <div class="col-md-4">
                     <label>Hasta</label>
-                    <input type="date" name="hasta" class="form-control">
+                    <input type="date" name="hasta" value="{{ hasta or '' }}" class="form-control">
                 </div>
 
                 <div class="col-md-4 d-flex align-items-end">
@@ -63,6 +63,12 @@
                 </div>
 
             </form>
+
+            {% if total_rango is not none %}
+            <div class="alert alert-success mt-3">
+                💰 Total rango: <strong>S/ {{ total_rango }}</strong>
+            </div>
+            {% endif %}
 
         </div>
     </div>
@@ -74,10 +80,10 @@
 
             <h5>📆 Ventas por mes</h5>
 
-            <form method="GET" action="/dashboard" class="row g-2">
+            <form method="GET" action="{{ url_for('reportes') }}" class="row g-2">
 
                 <div class="col-md-6">
-                    <input type="month" name="mes" class="form-control">
+                    <input type="month" name="mes" value="{{ mes_sel or '' }}" class="form-control">
                 </div>
 
                 <div class="col-md-6">
@@ -85,6 +91,12 @@
                 </div>
 
             </form>
+
+            {% if total_mes_seleccionado is not none %}
+            <div class="alert alert-success mt-3">
+                📅 Total mes: <strong>S/ {{ total_mes_seleccionado }}</strong>
+            </div>
+            {% endif %}
 
         </div>
     </div>
@@ -96,10 +108,10 @@
 
             <h5>📅 Total por día</h5>
 
-            <form method="GET" action="/dashboard" class="row g-2">
+            <form method="GET" action="{{ url_for('reportes') }}" class="row g-2">
 
                 <div class="col-md-6">
-                    <input type="date" name="dia" class="form-control">
+                    <input type="date" name="dia" value="{{ fecha_dia or '' }}" class="form-control">
                 </div>
 
                 <div class="col-md-6">
@@ -107,6 +119,12 @@
                 </div>
 
             </form>
+
+            {% if total_dia_seleccionado is not none %}
+            <div class="alert alert-success mt-3">
+                📆 Total día: <strong>S/ {{ total_dia_seleccionado }}</strong>
+            </div>
+            {% endif %}
 
         </div>
     </div>
@@ -118,22 +136,25 @@
 
             <h5>👩‍💼 Producción por trabajadora</h5>
 
-            <form method="GET" action="/dashboard" class="row g-2">
+            <form method="GET" action="{{ url_for('reportes') }}" class="row g-2">
 
                 <div class="col-md-3">
                     <select name="trabajadora_prod" class="form-control">
                         {% for t in trabajadoras %}
-                        <option value="{{ t.id }}">{{ t.nombre }}</option>
+                        <option value="{{ t.id }}"
+                        {% if trabajadora_prod == t.id|string %}selected{% endif %}>
+                        {{ t.nombre }}
+                        </option>
                         {% endfor %}
                     </select>
                 </div>
 
                 <div class="col-md-3">
-                    <input type="date" name="desde_prod" class="form-control">
+                    <input type="date" name="desde_prod" value="{{ desde_prod or '' }}" class="form-control">
                 </div>
 
                 <div class="col-md-3">
-                    <input type="date" name="hasta_prod" class="form-control">
+                    <input type="date" name="hasta_prod" value="{{ hasta_prod or '' }}" class="form-control">
                 </div>
 
                 <div class="col-md-3">
@@ -141,6 +162,13 @@
                 </div>
 
             </form>
+
+            {% if total_produccion is not none %}
+            <div class="alert alert-success mt-3">
+                👩 {{ nombre_trabajadora_prod }}:
+                <strong>S/ {{ total_produccion }}</strong>
+            </div>
+            {% endif %}
 
         </div>
     </div>
