@@ -247,8 +247,11 @@ def obtener_kpis_dashboard():
     from sqlalchemy import extract, func
 
     hoy = ahora_peru()
+    hoy_date = hoy_peru()
+
     anio = hoy.year
     mes = hoy.month
+    dia = hoy.day
 
     # ================= BOLETAS =================
     total_boletas = db.session.query(
@@ -266,10 +269,66 @@ def obtener_kpis_dashboard():
         extract("month", Factura.fecha) == mes
     ).scalar()
 
+    # ================= QUINCENA =================
+    if dia <= 15:
+        dia_inicio = 1
+        dia_fin = 15
+    else:
+        dia_inicio = 16
+        dia_fin = 31
+
+    ventas_quincena = Venta.query.filter(
+        extract("year", Venta.fecha) == anio,
+        extract("month", Venta.fecha) == mes,
+        extract("day", Venta.fecha) >= dia_inicio,
+        extract("day", Venta.fecha) <= dia_fin
+    ).all()
+
+    resumen = {}
+    for v in ventas_quincena:
+        resumen[v.trabajadora.nombre] = resumen.get(v.trabajadora.nombre, 0) + v.precio
+
+    total_quincena = round(sum(resumen.values()), 2)
+
+    # ================= COMISIONES =================
+    comisiones = {}
+
+    for nombre, total in resumen.items():
+
+        if nombre == "Avril":
+            com = total*0.13 if total>=3000 else total*0.10 if total>=1500 else 0
+        elif nombre == "Mariana":
+            com = total*0.13 if total>=1700 else total*0.10 if total>=1000 else 0
+        elif nombre == "Laurent":
+            com = total*0.40
+        elif nombre == "Maju":
+            com = total*0.50
+        else:
+            com = 0
+
+        comisiones[nombre] = round(com, 2)
+
+    # ================= HOY =================
+    ventas_hoy = Venta.query.filter(
+        db.func.date(Venta.fecha) == hoy_date
+    ).all()
+
+    total_hoy = round(sum(v.precio for v in ventas_hoy), 2)
+
+    # ================= RANKING =================
+    ranking = sorted(resumen.items(), key=lambda x: x[1], reverse=True)
+
     return {
         "total_boletas": round(total_boletas, 2),
         "total_facturas": round(total_facturas, 2),
-        "mes_actual": f"{anio}-{str(mes).zfill(2)}"
+        "mes_actual": f"{anio}-{str(mes).zfill(2)}",
+
+        # 🔥 claves que tu dashboard necesita
+        "resumen": resumen,
+        "comisiones": comisiones,
+        "ranking": ranking,
+        "total_hoy": total_hoy,
+        "total_mes": total_quincena
     }
 
 def trabajadoras_activas():
