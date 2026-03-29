@@ -47,13 +47,13 @@
 </div>
 </div>
 
-<div class="col-lg-3">
-<div class="small-box bg-secondary">
+<div class="small-box bg-info">
 <div class="inner">
-<h3>S/ {{ total_mes_actual }}</h3>
-<p>{{ nombre_mes }}</p>
+<h3 class="mb-1">S/ {{ "{:,.2f}".format(total_mes_actual) }}</h3>
+<p class="mb-0">{{ nombre_mes }}</p>
 </div>
-<div class="icon"><i class="fas fa-calendar"></i></div>
+<div class="icon" style="opacity:0.3">
+<i class="fas fa-calendar"></i>
 </div>
 </div>
 
