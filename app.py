@@ -249,19 +249,19 @@ def obtener_kpis_dashboard():
     from sqlalchemy import extract, func
     import calendar
 
-    meses = [
-    "", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
-    ]
-
-    nombre_mes = f"{meses[mes]} {anio}"
-
     hoy = ahora_peru()
     hoy_date = hoy_peru()
 
     anio = hoy.year
     mes = hoy.month
     dia = hoy.day
+    
+    meses = [
+    "", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+    ]
+
+    nombre_mes = f"{meses[mes]} {anio}"
 
     # ================= BOLETAS =================
     total_boletas = db.session.query(
