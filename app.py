@@ -1,4 +1,6 @@
 
+from calendar import calendar
+
 from flask import Flask, render_template, request, redirect
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
@@ -245,6 +247,14 @@ def obtener_filtros_reportes():
 def obtener_kpis_dashboard():
 
     from sqlalchemy import extract, func
+    import calendar
+
+    meses = [
+    "", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+    ]
+
+    nombre_mes = f"{meses[mes]} {anio}"
 
     hoy = ahora_peru()
     hoy_date = hoy_peru()
@@ -328,7 +338,8 @@ def obtener_kpis_dashboard():
         "comisiones": comisiones,
         "ranking": ranking,
         "total_hoy": total_hoy,
-        "total_mes": total_quincena
+        "total_mes": total_quincena,
+        "nombre_mes": nombre_mes
     }
 
 def trabajadoras_activas():
