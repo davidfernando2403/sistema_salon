@@ -953,56 +953,32 @@ def dashboard():
     if "user_id" not in session:
         return redirect("/login")
 
-    from datetime import timedelta
     from sqlalchemy import extract, func
 
     data_kpis = obtener_kpis_dashboard()
     filtros = obtener_filtros_reportes()
 
     hoy = ahora_peru()
+    hoy_date = hoy_peru()
+
     dia = hoy.day
     mes_actual = hoy.month
     anio_actual = hoy.year
 
-    # ================= QUINCENA =================
-
+    # ================= QUINCENA (SOLO TITULO) =================
     if dia <= 15:
-        dia_inicio = 1
-        dia_fin = 15
         titulo_quincena = "1–15"
     else:
-        dia_inicio = 16
-        dia_fin = 31
         titulo_quincena = "16–fin de mes"
 
-    ventas_quincena = Venta.query.filter(
-        extract("year", Venta.fecha)==anio_actual,
-        extract("month", Venta.fecha)==mes_actual,
-        extract("day", Venta.fecha)>=dia_inicio,
-        extract("day", Venta.fecha)<=dia_fin
-    ).all()
-
-    resumen = {}
-    for v in ventas_quincena:
-        resumen[v.trabajadora.nombre] = resumen.get(v.trabajadora.nombre,0)+v.precio
-
-    total_quincena = round(sum(resumen.values()),2)
-
-    # ================= HOY =================
-
-    ventas_hoy = Venta.query.filter(
-        db.func.date(Venta.fecha)==hoy
-    ).all()
-
-    total_hoy = round(sum(v.precio for v in ventas_hoy),2)
-
+    # ================= HOY (DETALLE POR TRABAJADORA) =================
     trabajadoras_hoy = Trabajadora.query.filter_by(activo=True).order_by(Trabajadora.nombre).all()
 
     ventas_por_trabajadora = dict(db.session.query(
         Trabajadora.id,
         func.coalesce(func.sum(Venta.precio),0)
     ).join(Venta)
-    .filter(db.func.date(Venta.fecha)==hoy, Trabajadora.activo==True)
+    .filter(db.func.date(Venta.fecha)==hoy_date, Trabajadora.activo==True)
     .group_by(Trabajadora.id)
     .all())
 
@@ -1011,7 +987,6 @@ def dashboard():
         resumen_hoy[t.nombre] = float(ventas_por_trabajadora.get(t.id,0))
 
     # ================= MES ACTUAL =================
-
     ventas_mes_actual = Venta.query.filter(
         extract("year", Venta.fecha)==anio_actual,
         extract("month", Venta.fecha)==mes_actual
@@ -1020,7 +995,6 @@ def dashboard():
     total_mes_actual = round(sum(v.precio for v in ventas_mes_actual),2)
 
     # ================= BOLETAS =================
-
     total_boletas_mes_actual = round(sum(
         b.monto for b in Boleta.query.filter(
             extract("year", Boleta.fecha)==anio_actual,
@@ -1030,14 +1004,15 @@ def dashboard():
 
     return render_template(
         "dashboard.html",
-        total_mes=total_quincena,
-        resumen=resumen,
+
+        # 🔹 SOLO lo que NO está en data_kpis
         titulo_quincena=titulo_quincena,
-        total_hoy=total_hoy,
         resumen_hoy=resumen_hoy,
         total_mes_actual=total_mes_actual,
         total_boletas_mes_actual=total_boletas_mes_actual,
         trabajadoras=trabajadoras_activas(),
+
+        # 🔥 fuentes principales
         **data_kpis,
         **filtros
     )
