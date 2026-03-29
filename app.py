@@ -157,6 +157,7 @@ def obtener_filtros_reportes():
     from datetime import datetime, timedelta
     from sqlalchemy import extract
 
+    # ================= PARAMETROS =================
     desde = request.args.get("desde")
     hasta = request.args.get("hasta")
     mes_sel = request.args.get("mes")
@@ -166,6 +167,7 @@ def obtener_filtros_reportes():
     desde_prod = request.args.get("desde_prod")
     hasta_prod = request.args.get("hasta_prod")
 
+    # ================= VARIABLES =================
     total_rango = None
     total_mes_seleccionado = None
     total_dia_seleccionado = None
@@ -177,50 +179,52 @@ def obtener_filtros_reportes():
         d1 = datetime.strptime(desde,"%Y-%m-%d")
         d2 = datetime.strptime(hasta,"%Y-%m-%d") + timedelta(days=1)
 
-        ventas = Venta.query.filter(
+        ventas_rango = Venta.query.filter(
             Venta.fecha >= d1,
             Venta.fecha < d2
         ).all()
 
-        total_rango = round(sum(v.precio for v in ventas),2)
+        total_rango = round(sum(v.precio for v in ventas_rango),2)
 
     # ================= MES =================
     if mes_sel:
         a = int(mes_sel.split("-")[0])
         m = int(mes_sel.split("-")[1])
 
-        ventas = Venta.query.filter(
+        ventas_mes = Venta.query.filter(
             extract("year",Venta.fecha)==a,
             extract("month",Venta.fecha)==m
         ).all()
 
-        total_mes_seleccionado = round(sum(v.precio for v in ventas),2)
+        total_mes_seleccionado = round(sum(v.precio for v in ventas_mes),2)
 
     # ================= DIA =================
     if fecha_dia:
         dt = datetime.strptime(fecha_dia,"%Y-%m-%d").date()
 
-        ventas = Venta.query.filter(
+        ventas_dia = Venta.query.filter(
             db.func.date(Venta.fecha)==dt
         ).all()
 
-        total_dia_seleccionado = round(sum(v.precio for v in ventas),2)
+        total_dia_seleccionado = round(sum(v.precio for v in ventas_dia),2)
 
     # ================= PRODUCCION =================
     if trab_sel and desde_prod and hasta_prod:
         d1 = datetime.strptime(desde_prod,"%Y-%m-%d")
         d2 = datetime.strptime(hasta_prod,"%Y-%m-%d")
 
-        ventas = Venta.query.filter(
+        ventas_prod = Venta.query.filter(
             Venta.trabajadora_id==trab_sel,
             Venta.fecha>=d1,
             Venta.fecha<=d2
         ).all()
 
-        total_produccion = round(sum(v.precio for v in ventas),2)
+        total_produccion = round(sum(v.precio for v in ventas_prod),2)
 
         t = Trabajadora.query.get(trab_sel)
         nombre_trabajadora_prod = t.nombre if t else None
+
+    # ⚠️ IMPORTANTE: NO METAS lógica de dashboard aquí
 
     return {
         "total_rango": total_rango,
@@ -235,7 +239,7 @@ def obtener_filtros_reportes():
         "fecha_dia": fecha_dia,
         "trabajadora_prod": trab_sel,
         "desde_prod": desde_prod,
-        "hasta_prod": hasta_prod
+        "hasta_prod": hasta_prod,
     }
 
 def obtener_kpis_dashboard():
