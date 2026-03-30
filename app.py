@@ -1109,6 +1109,7 @@ def reportes():
         return redirect("/login")
 
     from datetime import datetime, timedelta
+    from sqlalchemy import func, extract
 
     # ================= FILTROS =================
     desde = request.args.get("desde")
@@ -1126,12 +1127,32 @@ def reportes():
 
     # ================= MANTENER LO ANTIGUO =================
     filtros = obtener_filtros_reportes()
+    
+    hoy = ahora_peru()
+
+    # ================= BOLETAS MES ACTUAL =================
+    total_boletas = db.session.query(
+        func.coalesce(func.sum(Boleta.monto), 0)
+    ).filter(
+        extract("year", Boleta.fecha) == hoy.year,
+        extract("month", Boleta.fecha) == hoy.month
+    ).scalar()
+
+    # ================= FACTURAS MES ACTUAL =================
+    total_facturas = db.session.query(
+        func.coalesce(func.sum(Factura.monto), 0)
+    ).filter(
+        extract("year", Factura.fecha) == hoy.year,
+        extract("month", Factura.fecha) == hoy.month
+    ).scalar()
 
     return render_template(
         "reportes.html",
         **data_kpis,   # 🔥 nuevo
         **filtros,     # 🔥 antiguo (no romper)
-        trabajadoras=trabajadoras_activas()
+        trabajadoras=trabajadoras_activas(),
+        total_boletas=round(total_boletas, 2),
+        total_facturas=round(total_facturas, 2)
     )
 
 @app.route("/usuarios")
