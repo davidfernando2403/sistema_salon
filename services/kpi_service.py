@@ -1,12 +1,13 @@
 from sqlalchemy import func, extract
 from sqlalchemy.orm import joinedload
+from extensions import db
 
 
 
 def obtener_kpis(fecha_inicio=None, fecha_fin=None, trabajadora_id=None):
 
     # 🔥 IMPORTS LOCALES (rompe el ciclo)
-    from app import db, Venta, Trabajadora
+    from app import Venta, Trabajadora
 
     from sqlalchemy.orm import joinedload
     from sqlalchemy import func
