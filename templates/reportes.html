@@ -46,7 +46,7 @@
 
             <h5>📅 Ventas por rango</h5>
 
-            <form method="GET" action="{{ url_for('reportes') }}" class="row g-2">
+            <form method="GET" action="{{ url_for('reportes.reportes') }}" class="row g-2">
 
                 <div class="col-md-4">
                     <label>Desde</label>
@@ -80,7 +80,7 @@
 
             <h5>📆 Ventas por mes</h5>
 
-            <form method="GET" action="{{ url_for('reportes') }}" class="row g-2">
+            <form method="GET" action="{{ url_for('reportes.reportes') }}" class="row g-2">
 
                 <div class="col-md-6">
                     <input type="month" name="mes" value="{{ mes_sel or '' }}" class="form-control">
@@ -108,7 +108,7 @@
 
             <h5>📅 Total por día</h5>
 
-            <form method="GET" action="{{ url_for('reportes') }}" class="row g-2">
+            <form method="GET" action="{{ url_for('reportes.reportes') }}" class="row g-2">
 
                 <div class="col-md-6">
                     <input type="date" name="dia" value="{{ fecha_dia or '' }}" class="form-control">
@@ -136,7 +136,7 @@
 
             <h5>👩‍💼 Producción por trabajadora</h5>
 
-            <form method="GET" action="{{ url_for('reportes') }}" class="row g-2">
+            <form method="GET" action="{{ url_for('reportes.reportes') }}" class="row g-2">
 
                 <div class="col-md-3">
                     <select name="trabajadora_prod" class="form-control">
