@@ -56,14 +56,14 @@ def obtener_filtros_reportes(data):
     # ================= PRODUCCION =================
     if trab_sel and desde_prod and hasta_prod:
         d1 = datetime.strptime(desde_prod,"%Y-%m-%d")
-        d2 = datetime.strptime(hasta_prod,"%Y-%m-%d")
+        d2 = datetime.strptime(hasta_prod,"%Y-%m-%d") + timedelta(days=1)
 
         total_produccion = db.session.query(
             db.func.coalesce(db.func.sum(Venta.precio), 0)
         ).filter(
             Venta.trabajadora_id==trab_sel,
             Venta.fecha>=d1,
-            Venta.fecha<=d2
+            Venta.fecha<d2
         ).scalar()
 
         t = Trabajadora.query.get(trab_sel)

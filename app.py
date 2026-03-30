@@ -695,6 +695,10 @@ def dashboard():
     from datetime import datetime
     from sqlalchemy import func
     from sqlalchemy.orm import outerjoin
+    import locale
+
+    mes_nombre = hoy.strftime("%B").capitalize()
+    nombre_mes = f"{mes_nombre} {hoy.year}"
 
     hoy = ahora_peru()
     hoy_date = hoy_peru()
@@ -769,7 +773,8 @@ def dashboard():
         total_boletas_mes_actual=round(total_boletas_mes_actual, 2),
 
         # 🔥 KPIs unificados
-        **data_kpis
+        **data_kpis,
+        nombre_mes=nombre_mes
     )
       
 @app.route("/reportes")
