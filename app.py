@@ -6,6 +6,11 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from datetime import datetime, date
 from zoneinfo import ZoneInfo
+from services.core_service import (
+    trabajadoras_activas,
+    servicios_ordenados,
+    calcular_boleta
+)
 
 PERU_TZ = ZoneInfo("America/Lima")
 
