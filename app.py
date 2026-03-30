@@ -1,17 +1,30 @@
-from services.kpi_service import obtener_kpis
-from calendar import calendar
+# ================= IMPORTS PRINCIPALES =================
 
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, session, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime
+
+# ================= UTILIDADES FECHA =================
+
 from datetime import datetime, date
 from zoneinfo import ZoneInfo
+from utils.time import ahora_peru, hoy_peru  # funciones centralizadas (evita circular imports)
+
+# ================= SQL / QUERIES =================
+
+from sqlalchemy import func, extract
+
+# ================= SERVICES (LÓGICA DE NEGOCIO) =================
+
+from services.kpi_service import obtener_kpis
 from services.core_service import (
     trabajadoras_activas,
     servicios_ordenados,
     calcular_boleta
 )
 from services.dashboard_service import obtener_ventas_hoy
+
+# ================= MODELOS =================
+
 from models import (
     Trabajadora,
     Venta,
@@ -22,44 +35,42 @@ from models import (
     Factura,
     BoletaTrabajadora
 )
-from routes.dashboard import dashboard_bp
-app.register_blueprint(dashboard_bp)
 
-PERU_TZ = ZoneInfo("America/Lima")
+# ================= CONFIGURACIÓN APP =================
 
-from utils.time import ahora_peru, hoy_peru
+app = Flask(__name__)  # instancia principal de Flask
+app.secret_key = "clave_secreta_123"  # necesario para sesiones (login, flash, etc)
 
-from flask import session, redirect, url_for
-from flask import flash
-from sqlalchemy import func
-from datetime import date
-from sqlalchemy import extract
+# ================= BASE DE DATOS =================
 
-
-app = Flask(__name__)
-app.secret_key = "clave_secreta_123"
 import os
+from extensions import db  # instancia global de SQLAlchemy (patrón correcto)
 
-db_url = os.environ.get("DATABASE_URL")
+db_url = os.environ.get("DATABASE_URL")  # Railway inyecta esta variable
 
 if not db_url:
     raise RuntimeError("DATABASE_URL no está definido en Railway")
 
+# fix para compatibilidad con SQLAlchemy 2+
 if db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql+psycopg2://", 1)
 
-app.config["SQLALCHEMY_DATABASE_URI"] = db_url
-from extensions import db
+app.config["SQLALCHEMY_DATABASE_URI"] = db_url  # configurar conexión DB
 
-db.init_app(app)
+db.init_app(app)  # enlazar DB con Flask
+
+# ================= TIMEZONE =================
+
+PERU_TZ = ZoneInfo("America/Lima")  # zona horaria del sistema
+
+# ================= BLUEPRINTS =================
+
+from routes.dashboard import dashboard_bp  # importar rutas modularizadas
+
+app.register_blueprint(dashboard_bp)  # registrar rutas en la app
 
 
-# -------- MODELOS --------
-
-
-# 👉 FUNCIONES DE NEGOCIO
-
-# -------- LOGICA NEGOCIO --------
+# ================= 
 
 from sqlalchemy import func, extract
 from sqlalchemy.orm import joinedload
