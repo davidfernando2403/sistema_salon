@@ -6,6 +6,8 @@ from services.core_service import trabajadoras_activas
 
 ventas_bp = Blueprint("ventas", __name__)
 
+# ================= NUEVA VENTA =================
+
 @ventas_bp.route("/ventas/nueva")
 def ventas_nueva():
 
@@ -24,6 +26,8 @@ def ventas_nueva():
         servicios=Servicio.query.order_by(Servicio.nombre.asc()).all(),
         total_hoy=total_hoy
     )
+
+# ================= GUARDAR VENTA =================
     
 @ventas_bp.route("/ventas/guardar", methods=["POST"])
 def ventas_guardar():
@@ -61,6 +65,8 @@ def ventas_guardar():
         print(e)
 
     return redirect("/ventas/nueva")
+
+# ================= LISTADO VENTAS =================
 
 @ventas_bp.route("/ventas")
 def ventas():
@@ -127,4 +133,124 @@ def ventas():
         q=q,
         fecha=fecha,
         per_page=per_page
+    )
+    
+@ventas_bp.route("/ventas/editar/<int:id>", methods=["POST"])
+def editar_venta(id):
+
+    if session.get("rol") != "admin":
+        return redirect("/")
+
+    from datetime import datetime
+
+    v = Venta.query.get_or_404(id)
+
+    try:
+        fecha_form = request.form.get("fecha")
+
+        if fecha_form:
+            v.fecha = datetime.strptime(fecha_form, "%Y-%m-%d")
+
+        v.servicio_id = int(request.form["servicio"])
+        v.trabajadora_id = int(request.form["trabajadora"])
+        v.precio = float(request.form["precio"])
+
+        v.cliente = request.form.get("cliente")
+        v.medio_pago = request.form.get("medio_pago")
+        v.dni = request.form.get("dni") or None
+        v.telefono = request.form.get("telefono") or None
+        v.observaciones = request.form.get("observaciones")
+
+        db.session.commit()
+        flash("Venta actualizada ✅", "success")
+
+    except Exception as e:
+        db.session.rollback()
+        flash("Error al actualizar ❌", "danger")
+        print(e)
+
+    return redirect("/ventas")
+
+@ventas_bp.route("/ventas/eliminar/<int:id>")
+def eliminar_venta(id):
+
+    if session.get("rol") != "admin":
+        return redirect("/")
+
+    v = Venta.query.get(id)
+
+    db.session.delete(v)
+    db.session.commit()
+
+    return redirect("/ventas")
+
+@ventas_bp.route("/ventas/historial")
+def ventas_historial():
+
+    campo = request.args.get("campo")
+    q = request.args.get("q")
+    fecha = request.args.get("fecha")
+
+    page = request.args.get("page", 1, type=int)
+    per_page = request.args.get("per_page", 10, type=int)
+
+    ventas = Venta.query
+
+    from datetime import datetime
+
+    if campo and q:
+
+        if campo == "cliente":
+            ventas = ventas.filter(Venta.cliente.ilike(f"%{q}%"))
+
+        elif campo == "dni":
+            ventas = ventas.filter(Venta.dni.ilike(f"%{q}%"))
+
+        elif campo == "telefono":
+            ventas = ventas.filter(Venta.telefono.ilike(f"%{q}%"))
+
+        elif campo == "medio_pago":
+            ventas = ventas.filter(Venta.medio_pago.ilike(f"%{q}%"))
+
+        elif campo == "observaciones":
+            ventas = ventas.filter(Venta.observaciones.ilike(f"%{q}%"))
+
+        elif campo == "precio":
+            ventas = ventas.filter(Venta.precio == q)
+
+        elif campo == "trabajadora":
+            from models import Trabajadora
+            ventas = ventas.join(Trabajadora).filter(
+                Trabajadora.nombre.ilike(f"%{q}%")
+            )
+
+        elif campo == "servicio":
+            ventas = ventas.join(Servicio).filter(
+                Servicio.nombre.ilike(f"%{q}%")
+            )
+
+    if fecha and fecha != "None":
+        fecha_dt = datetime.strptime(fecha, "%Y-%m-%d").date()
+        ventas = ventas.filter(func.date(Venta.fecha) == fecha_dt)
+
+    total_ventas = ventas.with_entities(
+        func.coalesce(func.sum(Venta.precio), 0)
+    ).scalar()
+
+    cantidad = ventas.count()
+
+    ventas = ventas.order_by(Venta.fecha.desc()).paginate(
+        page=page,
+        per_page=per_page
+    )
+
+    return render_template(
+        "ventas_historial.html",
+        ventas=ventas,
+        campo=campo,
+        q=q,
+        fecha=fecha,
+        per_page=per_page,
+        total_ventas=total_ventas,
+        cantidad=cantidad
     )
