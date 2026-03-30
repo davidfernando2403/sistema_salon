@@ -1,5 +1,5 @@
 from extensions import db
-from app import ahora_peru
+from utils.time import ahora_peru
 
 class Venta(db.Model):
     id = db.Column(db.Integer, primary_key=True)

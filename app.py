@@ -25,12 +25,7 @@ from models import (
 
 PERU_TZ = ZoneInfo("America/Lima")
 
-def ahora_peru():
-    dt = datetime.now(PERU_TZ)
-    return dt.replace(tzinfo=None)
-
-def hoy_peru():
-    return ahora_peru().date()
+from utils.time import ahora_peru, hoy_peru
 
 from flask import session, redirect, url_for
 from flask import flash
