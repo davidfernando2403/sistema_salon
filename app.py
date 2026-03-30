@@ -693,16 +693,21 @@ def dashboard():
         return redirect("/login")
 
     from datetime import datetime
-    from sqlalchemy import func
+    from sqlalchemy import func, extract
     from sqlalchemy.orm import outerjoin
-    import locale
-    from sqlalchemy import extract
     
     hoy = ahora_peru()
     hoy_date = hoy_peru()
 
-    mes_nombre = hoy.strftime("%B").capitalize()
-    nombre_mes = f"{mes_nombre} {hoy.year}"
+    # ================= MES EN ESPAÑOL =================
+    MESES_ES = {
+        1: "Enero", 2: "Febrero", 3: "Marzo",
+        4: "Abril", 5: "Mayo", 6: "Junio",
+        7: "Julio", 8: "Agosto", 9: "Septiembre",
+        10: "Octubre", 11: "Noviembre", 12: "Diciembre"
+    }
+
+    nombre_mes = f"{MESES_ES[hoy.month]} {hoy.year}"
     
     # ================= MES ACTUAL =================
     total_mes_actual = db.session.query(
