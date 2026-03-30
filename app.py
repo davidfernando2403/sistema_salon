@@ -1131,9 +1131,7 @@ def reportes():
         "reportes.html",
         **data_kpis,   # 🔥 nuevo
         **filtros,     # 🔥 antiguo (no romper)
-        trabajadoras=trabajadoras_activas(),
-        desde=desde,
-        hasta=hasta
+        trabajadoras=trabajadoras_activas()
     )
 
 @app.route("/usuarios")
