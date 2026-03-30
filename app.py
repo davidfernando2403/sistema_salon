@@ -1024,6 +1024,7 @@ def dashboard():
 
     from datetime import datetime
     from sqlalchemy import func
+    from sqlalchemy.orm import outerjoin
 
     hoy = ahora_peru()
     hoy_date = hoy_peru()
@@ -1067,15 +1068,19 @@ def dashboard():
         titulo_quincena = "16–fin de mes"
 
     # ================= HOY (POR TRABAJADORA) =================
+    
     ventas_hoy = db.session.query(
         Trabajadora.nombre,
         func.coalesce(func.sum(Venta.precio), 0)
-    ).join(Venta).filter(
-        db.func.date(Venta.fecha) == hoy_date,
+    ).outerjoin(
+        Venta,
+        (Venta.trabajadora_id == Trabajadora.id) &
+        (db.func.date(Venta.fecha) == hoy_date)
+    ).filter(
         Trabajadora.activo == True
-    ).group_by(Trabajadora.nombre).all()
-
-    resumen_hoy = {nombre: float(total) for nombre, total in ventas_hoy}
+    ).group_by(
+        Trabajadora.nombre
+    ).all()
 
     # ================= TOTAL HOY =================
     total_hoy = sum(resumen_hoy.values())
