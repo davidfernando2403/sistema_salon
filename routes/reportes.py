@@ -4,6 +4,7 @@ from extensions import db
 from utils.time import ahora_peru
 from services.kpi_service import obtener_kpis
 from services.reportes_service import obtener_filtros_reportes
+from services.core_service import trabajadoras_activas
 
 from sqlalchemy import func, extract
 from datetime import datetime, timedelta
@@ -55,6 +56,7 @@ def reportes():
         "reportes.html",
         **data_kpis,
         **filtros,
+        trabajadoras=trabajadoras_activas(),
         total_boletas=round(total_boletas, 2),
         total_facturas=round(total_facturas, 2)
     )
