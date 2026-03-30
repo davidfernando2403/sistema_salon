@@ -1068,7 +1068,7 @@ def dashboard():
         titulo_quincena = "16–fin de mes"
 
     # ================= HOY (POR TRABAJADORA) =================
-    
+
     ventas_hoy = db.session.query(
         Trabajadora.nombre,
         func.coalesce(func.sum(Venta.precio), 0)
@@ -1081,6 +1081,8 @@ def dashboard():
     ).group_by(
         Trabajadora.nombre
     ).all()
+
+    resumen_hoy = {nombre: float(total) for nombre, total in ventas_hoy}
 
     # ================= TOTAL HOY =================
     total_hoy = sum(resumen_hoy.values())
