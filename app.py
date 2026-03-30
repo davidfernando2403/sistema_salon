@@ -70,7 +70,9 @@ from routes.ventas import ventas_bp
 from routes.trabajadoras import trabajadoras_bp
 from routes.asistencia import asistencia_bp
 from routes.servicios import servicios_bp
+from routes.usuarios import usuarios_bp
 
+app.register_blueprint(usuarios_bp)
 app.register_blueprint(servicios_bp)
 app.register_blueprint(asistencia_bp)
 app.register_blueprint(trabajadoras_bp)
@@ -179,7 +181,6 @@ def comisiones():
 
 from sqlalchemy import extract, func
 from datetime import datetime
-
       
 @app.route("/reportes")
 def reportes():
@@ -235,30 +236,6 @@ def reportes():
         total_boletas=round(total_boletas, 2),
         total_facturas=round(total_facturas, 2)
     )
-
-@app.route("/usuarios")
-def usuarios():
-
-    if session.get("rol") != "admin":
-        return redirect("/")
-
-    lista = Usuario.query.all()
-    return render_template("usuarios.html", usuarios=lista)
-
-@app.route("/usuarios/editar/<int:id>", methods=["POST"])
-def editar_usuario(id):
-
-    if session.get("rol") != "admin":
-        return redirect("/")
-
-    u = Usuario.query.get(id)
-
-    u.username = request.form["username"]
-    u.password = request.form["password"]
-
-    db.session.commit()
-
-    return redirect("/usuarios")
 
 @app.route("/comprobantes", methods=["GET","POST"])
 def comprobantes():
