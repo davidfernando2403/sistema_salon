@@ -131,56 +131,6 @@ def logout():
     session.clear()
     return redirect("/login")
 
-@app.route("/servicios")
-def servicios():
-
-    if session.get("rol") != "admin":
-        return redirect("/")
-
-    lista = Servicio.query.order_by(Servicio.nombre.asc()).all()
-    return render_template("servicios.html", servicios=lista)
-
-@app.route("/servicios/agregar", methods=["POST"])
-def agregar_servicio():
-
-    if session.get("rol") != "admin":
-        return redirect("/")
-
-    nombre = request.form["nombre"]
-
-    nuevo = Servicio(nombre=nombre)
-    db.session.add(nuevo)
-    db.session.commit()
-
-    return redirect("/servicios")
-
-@app.route("/servicios/editar/<int:id>", methods=["POST"])
-def editar_servicio(id):
-
-    if session.get("rol") != "admin":
-        return redirect("/")
-
-    servicio = Servicio.query.get(id)
-    servicio.nombre = request.form["nombre"]
-
-    db.session.commit()
-
-    return redirect("/servicios")
-
-@app.route("/servicios/eliminar/<int:id>")
-def eliminar_servicio(id):
-
-    if session.get("rol") != "admin":
-        return redirect("/")
-
-    servicio = Servicio.query.get(id)
-
-    db.session.delete(servicio)
-    db.session.commit()
-
-    return redirect("/servicios")
-
-
 @app.route('/comisiones')
 def comisiones():
     desde = request.args.get("desde")
