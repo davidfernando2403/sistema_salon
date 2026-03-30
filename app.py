@@ -12,6 +12,16 @@ from services.core_service import (
     calcular_boleta
 )
 from services.dashboard_service import obtener_ventas_hoy
+from models import (
+    Trabajadora,
+    Venta,
+    Servicio,
+    Usuario,
+    Asistencia,
+    Boleta,
+    Factura,
+    BoletaTrabajadora
+)
 
 PERU_TZ = ZoneInfo("America/Lima")
 
@@ -49,114 +59,6 @@ db.init_app(app)
 
 # -------- MODELOS --------
 
-class Trabajadora(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    nombre = db.Column(db.String(100))
-
-    tipo_pago = db.Column(db.String(20))
-    sueldo_base = db.Column(db.Float, default=0)
-
-    comision = db.Column(db.Float, default=0)
-
-    meta_1 = db.Column(db.Float, default=0)
-    comision_meta_1 = db.Column(db.Float, default=0)
-
-    meta_2 = db.Column(db.Float, default=0)
-    comision_meta_2 = db.Column(db.Float, default=0)
-    
-        # 👇 NUEVO CAMPO
-    activo = db.Column(db.Boolean, default=True)
-    
-    from datetime import time
-
-    hora_semana = db.Column(db.Time, default=time(10,0))
-    hora_sabado = db.Column(db.Time, default=time(10,0))
-    
-class BoletaTrabajadora(db.Model):
-    __tablename__ = "boleta_trabajadora"
-
-    id = db.Column(db.Integer, primary_key=True)
-
-    trabajadora_id = db.Column(db.Integer, db.ForeignKey('trabajadora.id'))
-    trabajadora = db.relationship("Trabajadora")
-
-    fecha_inicio = db.Column(db.Date)
-    fecha_fin = db.Column(db.Date)
-
-    sueldo_base = db.Column(db.Float, default=0)
-    comisiones = db.Column(db.Float, default=0)
-    bonos = db.Column(db.Float, default=0)
-
-    tardanzas = db.Column(db.Float, default=0)
-    faltas = db.Column(db.Float, default=0)
-    adelantos = db.Column(db.Float, default=0)
-    descuentos_manual = db.Column(db.Float, default=0)
-
-    subtotal_ingresos = db.Column(db.Float, default=0)
-    subtotal_descuentos = db.Column(db.Float, default=0)
-
-    total_pagar = db.Column(db.Float, default=0)
-    
-    modificada_manual = db.Column(db.Boolean, default=False)
-
-    creado = db.Column(db.DateTime)
-    
-    # 🔥 NUEVOS CAMPOS
-    cerrada = db.Column(db.Boolean, default=False)
-    fecha_cierre = db.Column(db.DateTime)
-
-class Usuario(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(50), unique=True)
-    password = db.Column(db.String(100))
-    rol = db.Column(db.String(20))  # admin o trabajador
-
-
-class Servicio(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    nombre = db.Column(db.String(100))
-
-class Venta(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    fecha = db.Column(db.DateTime, default=ahora_peru)
-
-    cliente = db.Column(db.String(100))
-    precio = db.Column(db.Float)
-
-    # NUEVOS CAMPOS
-    medio_pago = db.Column(db.String(50), nullable=False)
-    dni = db.Column(db.String(20), nullable=True)
-    telefono = db.Column(db.String(20), nullable=True)
-    observaciones = db.Column(db.String(200), nullable=True)
-
-    trabajadora_id = db.Column(db.Integer, db.ForeignKey('trabajadora.id'))
-    servicio_id = db.Column(db.Integer, db.ForeignKey('servicio.id'))
-
-    trabajadora = db.relationship('Trabajadora')
-    servicio = db.relationship('Servicio')
-
-class Asistencia(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    fecha = db.Column(db.Date)
-    hora_ingreso = db.Column(db.Time)
-    minutos_tarde = db.Column(db.Integer)
-    penalidad = db.Column(db.Float)
-
-    trabajadora_id = db.Column(db.Integer, db.ForeignKey('trabajadora.id'))
-    trabajadora = db.relationship('Trabajadora')
-
-class Boleta(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    codigo = db.Column(db.String(100))
-    monto = db.Column(db.Float)
-    fecha = db.Column(db.Date)
-
-
-class Factura(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    codigo = db.Column(db.String(100))
-    monto = db.Column(db.Float)
-    fecha = db.Column(db.Date)
 
 # 👉 FUNCIONES DE NEGOCIO
 
