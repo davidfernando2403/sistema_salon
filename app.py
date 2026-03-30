@@ -163,97 +163,6 @@ class Factura(db.Model):
 
 from sqlalchemy import func, extract
 from sqlalchemy.orm import joinedload
-
-def obtener_filtros_reportes():
-
-    from datetime import datetime, timedelta
-    from sqlalchemy import extract
-
-    # ================= PARAMETROS =================
-    desde = request.args.get("desde")
-    hasta = request.args.get("hasta")
-    mes_sel = request.args.get("mes")
-    fecha_dia = request.args.get("dia")
-
-    trab_sel = request.args.get("trabajadora_prod")
-    desde_prod = request.args.get("desde_prod")
-    hasta_prod = request.args.get("hasta_prod")
-
-    # ================= VARIABLES =================
-    total_rango = None
-    total_mes_seleccionado = None
-    total_dia_seleccionado = None
-    total_produccion = None
-    nombre_trabajadora_prod = None
-
-    # ================= RANGO =================
-    if desde and hasta:
-        d1 = datetime.strptime(desde,"%Y-%m-%d")
-        d2 = datetime.strptime(hasta,"%Y-%m-%d") + timedelta(days=1)
-
-        ventas_rango = Venta.query.filter(
-            Venta.fecha >= d1,
-            Venta.fecha < d2
-        ).all()
-
-        total_rango = round(sum(v.precio for v in ventas_rango),2)
-
-    # ================= MES =================
-    if mes_sel:
-        a = int(mes_sel.split("-")[0])
-        m = int(mes_sel.split("-")[1])
-
-        ventas_mes = Venta.query.filter(
-            extract("year",Venta.fecha)==a,
-            extract("month",Venta.fecha)==m
-        ).all()
-
-        total_mes_seleccionado = round(sum(v.precio for v in ventas_mes),2)
-
-    # ================= DIA =================
-    if fecha_dia:
-        dt = datetime.strptime(fecha_dia,"%Y-%m-%d").date()
-
-        ventas_dia = Venta.query.filter(
-            db.func.date(Venta.fecha)==dt
-        ).all()
-
-        total_dia_seleccionado = round(sum(v.precio for v in ventas_dia),2)
-
-    # ================= PRODUCCION =================
-    if trab_sel and desde_prod and hasta_prod:
-        d1 = datetime.strptime(desde_prod,"%Y-%m-%d")
-        d2 = datetime.strptime(hasta_prod,"%Y-%m-%d")
-
-        ventas_prod = Venta.query.filter(
-            Venta.trabajadora_id==trab_sel,
-            Venta.fecha>=d1,
-            Venta.fecha<=d2
-        ).all()
-
-        total_produccion = round(sum(v.precio for v in ventas_prod),2)
-
-        t = Trabajadora.query.get(trab_sel)
-        nombre_trabajadora_prod = t.nombre if t else None
-
-    # ⚠️ IMPORTANTE: NO METAS lógica de dashboard aquí
-
-    return {
-        "total_rango": total_rango,
-        "total_mes_seleccionado": total_mes_seleccionado,
-        "total_dia_seleccionado": total_dia_seleccionado,
-        "total_produccion": total_produccion,
-        "nombre_trabajadora_prod": nombre_trabajadora_prod,
-
-        "desde": desde,
-        "hasta": hasta,
-        "mes_sel": mes_sel,
-        "fecha_dia": fecha_dia,
-        "trabajadora_prod": trab_sel,
-        "desde_prod": desde_prod,
-        "hasta_prod": hasta_prod,
-    }
-
 from datetime import date, timedelta
 from sqlalchemy import extract
 import math
@@ -887,7 +796,9 @@ def reportes():
     data_kpis = obtener_kpis(fecha_inicio, fecha_fin)
 
     # ================= MANTENER LO ANTIGUO =================
-    filtros = obtener_filtros_reportes()
+    from services.reportes_service import obtener_filtros_reportes
+
+    filtros = obtener_filtros_reportes(request.args)
     
     hoy = ahora_peru()
 
