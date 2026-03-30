@@ -3,6 +3,7 @@ from models import Venta, Servicio
 from extensions import db
 from utils.time import ahora_peru, hoy_peru
 from services.core_service import trabajadoras_activas
+from sqlalchemy import func
 
 ventas_bp = Blueprint("ventas", __name__)
 
