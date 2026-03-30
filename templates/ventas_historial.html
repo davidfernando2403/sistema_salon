@@ -153,7 +153,7 @@ registros
 
 {% if ventas.has_prev %}
 <a class="btn btn-outline-primary me-2"
-   href="{{ url_for('ventas_historial',
+   href="{{ url_for('ventas.ventas_historial',
        page=ventas.prev_num,
        campo=campo,
        q=q,
@@ -169,7 +169,7 @@ Página {{ ventas.page }} de {{ ventas.pages }}
 
 {% if ventas.has_next %}
 <a class="btn btn-outline-primary ms-2"
-   href="{{ url_for('ventas_historial',
+   href="{{ url_for('ventas.ventas_historial',
        page=ventas.next_num,
        campo=campo,
        q=q,
