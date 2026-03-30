@@ -696,15 +696,14 @@ def dashboard():
     from sqlalchemy import func
     from sqlalchemy.orm import outerjoin
     import locale
+    from sqlalchemy import extract
+    
+    hoy = ahora_peru()
+    hoy_date = hoy_peru()
 
     mes_nombre = hoy.strftime("%B").capitalize()
     nombre_mes = f"{mes_nombre} {hoy.year}"
-
-    hoy = ahora_peru()
-    hoy_date = hoy_peru()
     
-    from sqlalchemy import extract, func
-
     # ================= MES ACTUAL =================
     total_mes_actual = db.session.query(
         func.coalesce(func.sum(Venta.precio), 0)
