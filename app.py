@@ -11,6 +11,7 @@ from services.core_service import (
     servicios_ordenados,
     calcular_boleta
 )
+from services.dashboard_service import obtener_ventas_hoy
 
 PERU_TZ = ZoneInfo("America/Lima")
 
@@ -749,20 +750,7 @@ def dashboard():
         titulo_quincena = "16–fin de mes"
 
     # ================= HOY (POR TRABAJADORA) =================
-    ventas_hoy = db.session.query(
-        Trabajadora.nombre,
-        func.coalesce(func.sum(Venta.precio), 0)
-    ).outerjoin(
-        Venta,
-        (Venta.trabajadora_id == Trabajadora.id) &
-        (db.func.date(Venta.fecha) == hoy_date)
-    ).filter(
-        Trabajadora.activo == True
-    ).group_by(
-        Trabajadora.nombre
-    ).all()
-
-    resumen_hoy = {nombre: float(total) for nombre, total in ventas_hoy}
+    resumen_hoy, total_hoy = obtener_ventas_hoy(hoy_date)
 
     # 🔥 ORDENAR DE MAYOR A MENOR (MEJORA UX)
     resumen_hoy = dict(sorted(resumen_hoy.items(), key=lambda x: x[1], reverse=True))
