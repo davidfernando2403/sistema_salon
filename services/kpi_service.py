@@ -1,14 +1,18 @@
 from sqlalchemy import func, extract
 from sqlalchemy.orm import joinedload
 
-from app import db
-from app import Venta, Trabajadora
+
 
 def obtener_kpis(fecha_inicio=None, fecha_fin=None, trabajadora_id=None):
 
+    # 🔥 IMPORTS LOCALES (rompe el ciclo)
+    from app import db, Venta, Trabajadora
+
+    from sqlalchemy.orm import joinedload
+    from sqlalchemy import func
+
     query = Venta.query.options(joinedload(Venta.trabajadora))
 
-    # ================= FILTROS =================
     if fecha_inicio:
         query = query.filter(Venta.fecha >= fecha_inicio)
 
@@ -20,7 +24,6 @@ def obtener_kpis(fecha_inicio=None, fecha_fin=None, trabajadora_id=None):
 
     ventas = query.all()
 
-    # ================= KPIs BASE =================
     total = round(sum(v.precio for v in ventas), 2)
 
     resumen = {}
@@ -28,19 +31,15 @@ def obtener_kpis(fecha_inicio=None, fecha_fin=None, trabajadora_id=None):
         nombre = v.trabajadora.nombre
         resumen[nombre] = resumen.get(nombre, 0) + v.precio
 
-    # ================= COMISIONES DINAMICAS =================
     comisiones = {}
 
     for nombre, total_v in resumen.items():
-
         t = Trabajadora.query.filter_by(nombre=nombre).first()
 
         com = 0
-
         if t:
             if t.tipo_pago == "porcentaje":
                 com = total_v * (t.comision / 100)
-
             elif t.tipo_pago == "meta":
                 if total_v >= t.meta_2:
                     com = total_v * (t.comision_meta_2 / 100)
@@ -49,7 +48,6 @@ def obtener_kpis(fecha_inicio=None, fecha_fin=None, trabajadora_id=None):
 
         comisiones[nombre] = round(com, 2)
 
-    # ================= RANKING =================
     ranking = sorted(resumen.items(), key=lambda x: x[1], reverse=True)
 
     return {
