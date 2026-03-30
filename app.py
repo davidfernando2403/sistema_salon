@@ -67,7 +67,9 @@ PERU_TZ = ZoneInfo("America/Lima")  # zona horaria del sistema
 
 from routes.dashboard import dashboard_bp  # importar rutas modularizadas
 from routes.ventas import ventas_bp
+from routes.trabajadoras import trabajadoras_bp
 
+app.register_blueprint(trabajadoras_bp)
 app.register_blueprint(dashboard_bp)  # registrar rutas en la app
 app.register_blueprint(ventas_bp)  # registrar rutas en la app
 
