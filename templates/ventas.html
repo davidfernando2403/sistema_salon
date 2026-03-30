@@ -202,7 +202,7 @@ Limpiar
 {% if ventas.has_prev %}
 <li class="page-item">
 <a class="page-link"
-   href="{{ url_for('ventas',
+   href="{{ url_for('ventas.ventas'),
         page=ventas.prev_num,
         campo=campo,
         q=q,
@@ -217,7 +217,7 @@ Anterior
 {% if num %}
 <li class="page-item {% if ventas.page == num %}active{% endif %}">
 <a class="page-link"
-   href="{{ url_for('ventas',
+   href="{{ url_for('ventas.ventas'),
         page=num,
         campo=campo,
         q=q,
@@ -232,7 +232,7 @@ Anterior
 {% if ventas.has_next %}
 <li class="page-item">
 <a class="page-link"
-   href="{{ url_for('ventas',
+   href="{{ url_for('ventas.ventas'),
         page=ventas.next_num,
         campo=campo,
         q=q,
