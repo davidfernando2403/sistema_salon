@@ -1028,14 +1028,18 @@ def dashboard():
     hoy = ahora_peru()
     hoy_date = hoy_peru()
 
-    # ================= RANGO MES =================
-    inicio_mes = datetime(hoy.year, hoy.month, 1)
-    fin_mes = datetime(hoy.year, hoy.month, 31)
+    # ================= RANGO QUINCENA =================
+    if hoy.day <= 15:
+        inicio = datetime(hoy.year, hoy.month, 1)
+        fin = datetime(hoy.year, hoy.month, 15)
+    else:
+        inicio = datetime(hoy.year, hoy.month, 16)
+        fin = datetime(hoy.year, hoy.month, 31)
 
     # ================= KPIs PRINCIPALES =================
     data_kpis = obtener_kpis(
-        fecha_inicio=inicio_mes,
-        fecha_fin=fin_mes
+        fecha_inicio=inicio,
+        fecha_fin=fin
     )
 
     # ================= TITULO QUINCENA =================
@@ -1071,20 +1075,38 @@ def dashboard():
         **data_kpis
     )
       
-@app.route("/reportes") 
+@app.route("/reportes")
 def reportes():
 
     if "user_id" not in session:
         return redirect("/login")
 
-    data_kpis = obtener_kpis_dashboard()
+    from datetime import datetime, timedelta
+
+    # ================= FILTROS =================
+    desde = request.args.get("desde")
+    hasta = request.args.get("hasta")
+
+    fecha_inicio = None
+    fecha_fin = None
+
+    if desde and hasta:
+        fecha_inicio = datetime.strptime(desde, "%Y-%m-%d")
+        fecha_fin = datetime.strptime(hasta, "%Y-%m-%d") + timedelta(days=1)
+
+    # ================= NUEVO KPI =================
+    data_kpis = obtener_kpis(fecha_inicio, fecha_fin)
+
+    # ================= MANTENER LO ANTIGUO =================
     filtros = obtener_filtros_reportes()
 
     return render_template(
-        "reportes.html", 
-        **data_kpis,
-        **filtros,
-        trabajadoras=trabajadoras_activas()
+        "reportes.html",
+        **data_kpis,   # 🔥 nuevo
+        **filtros,     # 🔥 antiguo (no romper)
+        trabajadoras=trabajadoras_activas(),
+        desde=desde,
+        hasta=hasta
     )
 
 @app.route("/usuarios")
