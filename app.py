@@ -71,7 +71,9 @@ from routes.trabajadoras import trabajadoras_bp
 from routes.asistencia import asistencia_bp
 from routes.servicios import servicios_bp
 from routes.usuarios import usuarios_bp
+from routes.comprobantes import comprobantes_bp
 
+app.register_blueprint(comprobantes_bp)
 app.register_blueprint(usuarios_bp)
 app.register_blueprint(servicios_bp)
 app.register_blueprint(asistencia_bp)
@@ -236,33 +238,6 @@ def reportes():
         total_boletas=round(total_boletas, 2),
         total_facturas=round(total_facturas, 2)
     )
-
-@app.route("/comprobantes", methods=["GET","POST"])
-def comprobantes():
-
-    from datetime import datetime
-
-    if request.method == "POST":
-
-        tipo = request.form["tipo"]
-        codigo = request.form["codigo"]
-        monto = float(request.form["monto"])
-        fecha = datetime.strptime(request.form["fecha"], "%Y-%m-%d").date()
-
-        if tipo == "boleta":
-            db.session.add(Boleta(codigo=codigo,monto=monto,fecha=fecha))
-
-        else:
-            db.session.add(Factura(codigo=codigo,monto=monto,fecha=fecha))
-
-        db.session.commit()
-
-        flash("Registrado correctamente ✅","success")
-
-    boletas = Boleta.query.order_by(Boleta.fecha.desc()).all()
-    facturas = Factura.query.order_by(Factura.fecha.desc()).all()
-
-    return render_template("comprobantes.html", boletas=boletas, facturas=facturas)
 
 @app.route("/graficos")
 def graficos():
