@@ -1,4 +1,4 @@
-
+from services.kpi_service import obtener_kpis
 from calendar import calendar
 
 from flask import Flask, render_template, request, redirect
