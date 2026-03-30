@@ -1027,6 +1027,24 @@ def dashboard():
 
     hoy = ahora_peru()
     hoy_date = hoy_peru()
+    
+    from sqlalchemy import extract, func
+
+    # ================= MES ACTUAL =================
+    total_mes_actual = db.session.query(
+        func.coalesce(func.sum(Venta.precio), 0)
+    ).filter(
+        extract("year", Venta.fecha) == hoy.year,
+        extract("month", Venta.fecha) == hoy.month
+    ).scalar()
+
+    # ================= BOLETAS MES ACTUAL =================
+    total_boletas_mes_actual = db.session.query(
+        func.coalesce(func.sum(Boleta.monto), 0)
+    ).filter(
+        extract("year", Boleta.fecha) == hoy.year,
+        extract("month", Boleta.fecha) == hoy.month
+    ).scalar()
 
     # ================= RANGO QUINCENA =================
     if hoy.day <= 15:
@@ -1070,6 +1088,8 @@ def dashboard():
         resumen_hoy=resumen_hoy,
         total_hoy=round(total_hoy, 2),
         trabajadoras=trabajadoras_activas(),
+        total_mes_actual=round(total_mes_actual, 2),
+        total_boletas_mes_actual=round(total_boletas_mes_actual, 2),
 
         # 🔥 KPIs unificados
         **data_kpis
