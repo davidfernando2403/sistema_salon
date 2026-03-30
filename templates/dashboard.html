@@ -12,7 +12,7 @@
 <div class="container mt-4">
 
 <h1 class="text-center mb-4">
-📊 Dashboard – {{ nombre_mes }} ({{ titulo_quincena }})
+📊 Dashboard – {{ nombre_mes }} | Quincena {{ titulo_quincena }}
 </h1>
 
 <div class="text-end mb-3">
@@ -30,7 +30,7 @@
 <div class="col-lg-3">
 <div class="small-box bg-success">
 <div class="inner">
-<h3>S/ {{ total_general }}</h3>
+<h3>S/ {{ total_quincena }}</h3>
 <p>Total quincena</p>
 </div>
 <div class="icon"><i class="fas fa-coins"></i></div>
@@ -40,7 +40,7 @@
 <div class="col-lg-3">
 <div class="small-box bg-info">
 <div class="inner">
-<h3>S/ {{ total_hoy }}</h3>
+<h3>S/ {{ "{:,.2f}".format(total_hoy) }}</h3>
 <p>Total hoy</p>
 </div>
 <div class="icon"><i class="fas fa-calendar-day"></i></div>
@@ -51,7 +51,7 @@
 <div class="small-box bg-info">
 <div class="inner">
 <h3>S/ {{ "{:,.2f}".format(total_mes_actual) }}</h3>
-<p>Mes: {{ nombre_mes }}</p>
+<p>Mes Actual: {{ nombre_mes }}</p>
 </div>
 <div class="icon"><i class="fas fa-calendar"></i></div>
 </div>
@@ -60,7 +60,7 @@
 <div class="col-lg-3">
 <div class="small-box bg-warning">
 <div class="inner">
-<h3>S/ {{ total_boletas_mes_actual }}</h3>
+<h3>S/ {{ "{:,.2f}".format(total_boletas_mes_actual) }}</h3>
 <p>Boletas {{ nombre_mes }}</p>
 </div>
 <div class="icon">
@@ -82,7 +82,7 @@
 {% for nombre, total in resumen_hoy.items() %}
 <li class="list-group-item d-flex justify-content-between">
 {{ nombre }}
-<span>S/ {{ total }}</span>
+<span>S/ {{ "{:,.2f}".format(total) }}</span>
 </li>
 {% endfor %}
 </ul>

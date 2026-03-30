@@ -739,6 +739,9 @@ def dashboard():
         fecha_fin=fin
     )
 
+    # 🔥 Alias claro (no rompe nada)
+    total_quincena = data_kpis.get("total_general", 0)
+
     # ================= TITULO QUINCENA =================
     if hoy.day <= 15:
         titulo_quincena = "1–15"
@@ -746,7 +749,6 @@ def dashboard():
         titulo_quincena = "16–fin de mes"
 
     # ================= HOY (POR TRABAJADORA) =================
-
     ventas_hoy = db.session.query(
         Trabajadora.nombre,
         func.coalesce(func.sum(Venta.precio), 0)
@@ -762,6 +764,9 @@ def dashboard():
 
     resumen_hoy = {nombre: float(total) for nombre, total in ventas_hoy}
 
+    # 🔥 ORDENAR DE MAYOR A MENOR (MEJORA UX)
+    resumen_hoy = dict(sorted(resumen_hoy.items(), key=lambda x: x[1], reverse=True))
+
     # ================= TOTAL HOY =================
     total_hoy = sum(resumen_hoy.values())
 
@@ -773,11 +778,16 @@ def dashboard():
         resumen_hoy=resumen_hoy,
         total_hoy=round(total_hoy, 2),
         trabajadoras=trabajadoras_activas(),
+
         total_mes_actual=round(total_mes_actual, 2),
         total_boletas_mes_actual=round(total_boletas_mes_actual, 2),
 
+        # 🔥 NUEVO (opcional usar en HTML)
+        total_quincena=round(total_quincena, 2),
+
         # 🔥 KPIs unificados
         **data_kpis,
+
         nombre_mes=nombre_mes
     )
       
