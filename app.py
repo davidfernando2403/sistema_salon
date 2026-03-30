@@ -22,6 +22,8 @@ from models import (
     Factura,
     BoletaTrabajadora
 )
+from routes.dashboard import dashboard_bp
+app.register_blueprint(dashboard_bp)
 
 PERU_TZ = ZoneInfo("America/Lima")
 
@@ -584,97 +586,6 @@ def comisiones():
 from sqlalchemy import extract, func
 from datetime import datetime
 
-@app.route("/dashboard")
-def dashboard():
-
-    if "user_id" not in session:
-        return redirect("/login")
-
-    from datetime import datetime
-    from sqlalchemy import func, extract
-    from sqlalchemy.orm import outerjoin
-    
-    hoy = ahora_peru()
-    hoy_date = hoy_peru()
-
-    # ================= MES EN ESPAÑOL =================
-    MESES_ES = {
-        1: "Enero", 2: "Febrero", 3: "Marzo",
-        4: "Abril", 5: "Mayo", 6: "Junio",
-        7: "Julio", 8: "Agosto", 9: "Septiembre",
-        10: "Octubre", 11: "Noviembre", 12: "Diciembre"
-    }
-
-    nombre_mes = f"{MESES_ES[hoy.month]} {hoy.year}"
-    
-    # ================= MES ACTUAL =================
-    total_mes_actual = db.session.query(
-        func.coalesce(func.sum(Venta.precio), 0)
-    ).filter(
-        extract("year", Venta.fecha) == hoy.year,
-        extract("month", Venta.fecha) == hoy.month
-    ).scalar()
-
-    # ================= BOLETAS MES ACTUAL =================
-    total_boletas_mes_actual = db.session.query(
-        func.coalesce(func.sum(Boleta.monto), 0)
-    ).filter(
-        extract("year", Boleta.fecha) == hoy.year,
-        extract("month", Boleta.fecha) == hoy.month
-    ).scalar()
-
-    # ================= RANGO QUINCENA =================
-    if hoy.day <= 15:
-        inicio = datetime(hoy.year, hoy.month, 1)
-        fin = datetime(hoy.year, hoy.month, 15)
-    else:
-        inicio = datetime(hoy.year, hoy.month, 16)
-        fin = datetime(hoy.year, hoy.month, 31)
-
-    # ================= KPIs PRINCIPALES =================
-    data_kpis = obtener_kpis(
-        fecha_inicio=inicio,
-        fecha_fin=fin
-    )
-
-    # 🔥 Alias claro (no rompe nada)
-    total_quincena = data_kpis.get("total_general", 0)
-
-    # ================= TITULO QUINCENA =================
-    if hoy.day <= 15:
-        titulo_quincena = "1–15"
-    else:
-        titulo_quincena = "16–fin de mes"
-
-    # ================= HOY (POR TRABAJADORA) =================
-    resumen_hoy, total_hoy = obtener_ventas_hoy(hoy_date)
-
-    # 🔥 ORDENAR DE MAYOR A MENOR (MEJORA UX)
-    resumen_hoy = dict(sorted(resumen_hoy.items(), key=lambda x: x[1], reverse=True))
-
-    # ================= TOTAL HOY =================
-    total_hoy = sum(resumen_hoy.values())
-
-    return render_template(
-        "dashboard.html",
-
-        # 🔹 extras del dashboard
-        titulo_quincena=titulo_quincena,
-        resumen_hoy=resumen_hoy,
-        total_hoy=round(total_hoy, 2),
-        trabajadoras=trabajadoras_activas(),
-
-        total_mes_actual=round(total_mes_actual, 2),
-        total_boletas_mes_actual=round(total_boletas_mes_actual, 2),
-
-        # 🔥 NUEVO (opcional usar en HTML)
-        total_quincena=round(total_quincena, 2),
-
-        # 🔥 KPIs unificados
-        **data_kpis,
-
-        nombre_mes=nombre_mes
-    )
       
 @app.route("/reportes")
 def reportes():
