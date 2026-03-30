@@ -154,6 +154,64 @@ class Factura(db.Model):
 
 # -------- LOGICA NEGOCIO --------
 
+from sqlalchemy import func, extract
+from sqlalchemy.orm import joinedload
+
+def obtener_kpis(fecha_inicio=None, fecha_fin=None, trabajadora_id=None):
+
+    query = Venta.query.options(joinedload(Venta.trabajadora))
+
+    # ================= FILTROS =================
+    if fecha_inicio:
+        query = query.filter(Venta.fecha >= fecha_inicio)
+
+    if fecha_fin:
+        query = query.filter(Venta.fecha <= fecha_fin)
+
+    if trabajadora_id:
+        query = query.filter(Venta.trabajadora_id == trabajadora_id)
+
+    ventas = query.all()
+
+    # ================= KPIs BASE =================
+    total = round(sum(v.precio for v in ventas), 2)
+
+    resumen = {}
+    for v in ventas:
+        nombre = v.trabajadora.nombre
+        resumen[nombre] = resumen.get(nombre, 0) + v.precio
+
+    # ================= COMISIONES DINAMICAS =================
+    comisiones = {}
+
+    for nombre, total_v in resumen.items():
+
+        t = Trabajadora.query.filter_by(nombre=nombre).first()
+
+        com = 0
+
+        if t:
+            if t.tipo_pago == "porcentaje":
+                com = total_v * (t.comision / 100)
+
+            elif t.tipo_pago == "meta":
+                if total_v >= t.meta_2:
+                    com = total_v * (t.comision_meta_2 / 100)
+                elif total_v >= t.meta_1:
+                    com = total_v * (t.comision_meta_1 / 100)
+
+        comisiones[nombre] = round(com, 2)
+
+    # ================= RANKING =================
+    ranking = sorted(resumen.items(), key=lambda x: x[1], reverse=True)
+
+    return {
+        "total_general": total,
+        "resumen": resumen,
+        "comisiones": comisiones,
+        "ranking": ranking
+    }
+
 def obtener_filtros_reportes():
 
     from datetime import datetime, timedelta
@@ -964,70 +1022,55 @@ def dashboard():
     if "user_id" not in session:
         return redirect("/login")
 
-    from sqlalchemy import extract, func
-
-    data_kpis = obtener_kpis_dashboard()
-    filtros = obtener_filtros_reportes()
+    from datetime import datetime
+    from sqlalchemy import func
 
     hoy = ahora_peru()
     hoy_date = hoy_peru()
 
-    dia = hoy.day
-    mes_actual = hoy.month
-    anio_actual = hoy.year
+    # ================= RANGO MES =================
+    inicio_mes = datetime(hoy.year, hoy.month, 1)
+    fin_mes = datetime(hoy.year, hoy.month, 31)
 
-    # ================= QUINCENA (SOLO TITULO) =================
-    if dia <= 15:
+    # ================= KPIs PRINCIPALES =================
+    data_kpis = obtener_kpis(
+        fecha_inicio=inicio_mes,
+        fecha_fin=fin_mes
+    )
+
+    # ================= TITULO QUINCENA =================
+    if hoy.day <= 15:
         titulo_quincena = "1–15"
     else:
         titulo_quincena = "16–fin de mes"
 
-    # ================= HOY (DETALLE POR TRABAJADORA) =================
-    trabajadoras_hoy = Trabajadora.query.filter_by(activo=True).order_by(Trabajadora.nombre).all()
+    # ================= HOY (POR TRABAJADORA) =================
+    ventas_hoy = db.session.query(
+        Trabajadora.nombre,
+        func.coalesce(func.sum(Venta.precio), 0)
+    ).join(Venta).filter(
+        db.func.date(Venta.fecha) == hoy_date,
+        Trabajadora.activo == True
+    ).group_by(Trabajadora.nombre).all()
 
-    ventas_por_trabajadora = dict(db.session.query(
-        Trabajadora.id,
-        func.coalesce(func.sum(Venta.precio),0)
-    ).join(Venta)
-    .filter(db.func.date(Venta.fecha)==hoy_date, Trabajadora.activo==True)
-    .group_by(Trabajadora.id)
-    .all())
+    resumen_hoy = {nombre: float(total) for nombre, total in ventas_hoy}
 
-    resumen_hoy = {}
-    for t in trabajadoras_hoy:
-        resumen_hoy[t.nombre] = float(ventas_por_trabajadora.get(t.id,0))
-
-    # ================= MES ACTUAL =================
-    ventas_mes_actual = Venta.query.filter(
-        extract("year", Venta.fecha)==anio_actual,
-        extract("month", Venta.fecha)==mes_actual
-    ).all()
-
-    total_mes_actual = round(sum(v.precio for v in ventas_mes_actual),2)
-
-    # ================= BOLETAS =================
-    total_boletas_mes_actual = round(sum(
-        b.monto for b in Boleta.query.filter(
-            extract("year", Boleta.fecha)==anio_actual,
-            extract("month", Boleta.fecha)==mes_actual
-        )
-    ),2)
+    # ================= TOTAL HOY =================
+    total_hoy = sum(resumen_hoy.values())
 
     return render_template(
         "dashboard.html",
 
-        # 🔹 SOLO lo que NO está en data_kpis
+        # 🔹 extras del dashboard
         titulo_quincena=titulo_quincena,
         resumen_hoy=resumen_hoy,
-        total_mes_actual=total_mes_actual,
-        total_boletas_mes_actual=total_boletas_mes_actual,
+        total_hoy=round(total_hoy, 2),
         trabajadoras=trabajadoras_activas(),
 
-        # 🔥 fuentes principales
-        **data_kpis,
-        **filtros
+        # 🔥 KPIs unificados
+        **data_kpis
     )
-    
+      
 @app.route("/reportes") 
 def reportes():
 
