@@ -77,6 +77,7 @@ def asistencia_admin():
 
     from datetime import date, timedelta, datetime
     from sqlalchemy import extract
+    from calendar import monthrange
 
     accion = request.form.get("accion")
     edit_id = request.args.get("edit")
@@ -166,6 +167,44 @@ def asistencia_admin():
 
     t_edit = Asistencia.query.get(edit_id) if edit_id else None
 
+    # ================= NUEVO: DIAS SIN MARCAR =================
+
+    _, ultimo_dia = monthrange(anio, mes)
+
+    fechas = [date(anio, mes, d) for d in range(1, ultimo_dia + 1)]
+
+    # mapa de asistencias
+    asistencias_map = {
+        (r.trabajadora_id, r.fecha): True
+        for r in registros
+    }
+
+    faltas_tabla = {}
+
+    for f in fechas:
+
+        # filtro quincena
+        if quincena == "1" and f.day > 15:
+            continue
+        if quincena == "2" and f.day < 16:
+            continue
+
+        faltas_tabla[f] = {}
+
+        for t in trabajadoras:
+
+            # filtro trabajadora
+            if trabajadora_id and str(t.id) != str(trabajadora_id):
+                faltas_tabla[f][t.nombre] = False
+                continue
+
+            key = (t.id, f)
+
+            # True = falta (mostrar ❌)
+            faltas_tabla[f][t.nombre] = key not in asistencias_map
+
+    # ================= RETURN =================
+
     return render_template(
         "asistencia_admin.html",
         registros=registros,
@@ -174,5 +213,7 @@ def asistencia_admin():
         t_edit=t_edit,
         trabajadora_id=trabajadora_id,
         mes_sel=f"{anio}-{str(mes).zfill(2)}",
-        quincena=quincena
+        quincena=quincena,
+        fechas=fechas,                # 👈 NUEVO
+        faltas_tabla=faltas_tabla     # 👈 NUEVO
     )
