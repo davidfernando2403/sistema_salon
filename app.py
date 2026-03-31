@@ -74,7 +74,9 @@ from routes.usuarios import usuarios_bp
 from routes.comprobantes import comprobantes_bp
 from routes.reportes import reportes_bp
 from routes.graficos import graficos_bp
+from routes.boletas import boletas_bp
 
+app.register_blueprint(boletas_bp)
 app.register_blueprint(graficos_bp)
 app.register_blueprint(reportes_bp)
 app.register_blueprint(comprobantes_bp)

@@ -40,14 +40,14 @@
 
 <a href="/" class="btn btn-secondary mb-3">⬅ Volver</a>
 
-<a href="{{ url_for('cerrar_quincena',
+<a href="{{ url_for('boletas.cerrar_quincena',
         mes=inicio.strftime('%Y-%m'),
         q=1 if inicio.day==1 else 2) }}"
    class="btn btn-danger">
 Cerrar quincena
 </a>
 
-<a href="{{ url_for('boleta_trabajadora',
+<a href="{{ url_for('boletas.boleta_trabajadora',
         hist=1,
         mes=request.args.get('mes') or inicio.strftime('%Y-%m'),
         q=request.args.get('q') or (1 if inicio.day==1 else 2)) }}"
@@ -92,7 +92,7 @@ S/ {{ "%.2f"|format(b.tardanzas + b.faltas) }}
 <td class="fw-bold">S/ {{ "%.2f"|format(b.total_pagar) }}</td>
 <td>{{ b.fecha_cierre }}</td>
 <td>
-<a href="{{ url_for('boleta_pdf', trabajadora_id=b.trabajadora_id) }}"
+<a href="{{ url_for('boletas.boleta_pdf', trabajadora_id=b.trabajadora_id) }}"
    class="btn btn-sm btn-outline-dark">
 PDF
 </a>
@@ -111,7 +111,7 @@ PDF
 
 <div class="list-group mb-4">
 {% for f in todas_trabajadoras %}
-<a href="{{ url_for('boleta_trabajadora',
+<a href="{{ url_for('boletas.boleta_trabajadora',
         ver=f.id,
         mes=request.args.get('mes') or inicio.strftime('%Y-%m'),
         q=request.args.get('q') or (1 if inicio.day==1 else 2)) }}"
@@ -161,7 +161,7 @@ PDF
 
 {% if not f.bloqueada %}
 <a class="btn btn-sm btn-outline-primary"
-   href="{{ url_for('boleta_trabajadora',
+   href="{{ url_for('boletas.boleta_trabajadora',
         ver=f.id,
         edit=f.id,
         mes=request.args.get('mes') or inicio.strftime('%Y-%m'),
@@ -172,7 +172,7 @@ Editar
 <span class="badge bg-success">Pagada</span>
 {% endif %}
 
-<a href="{{ url_for('boleta_pdf', trabajadora_id=f.id) }}"
+<a href="{{ url_for('boletas.boleta_pdf', trabajadora_id=f.id) }}"
    class="btn btn-sm btn-outline-dark ms-1">
 PDF
 </a>
@@ -244,7 +244,7 @@ Guardar
 Recalcular automático
 </button>
 
-<a href="{{ url_for('boleta_trabajadora',
+<a href="{{ url_for('boletas.boleta_trabajadora',
         ver=f.id,
         mes=request.args.get('mes'),
         q=request.args.get('q')) }}"
