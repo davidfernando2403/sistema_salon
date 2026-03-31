@@ -127,6 +127,68 @@ def asistencia_admin():
 
         flash("Asistencia eliminada 🗑","warning")
         return redirect("/asistencia_admin")
+        
+    # ================= REGISTRO MANUAL =================
+    if request.method == "POST" and accion == "manual":
+
+        from datetime import datetime
+
+        trabajadora_id = int(request.form["trabajadora"])
+        fecha = datetime.strptime(request.form["fecha"], "%Y-%m-%d").date()
+
+        # validar domingo
+        if fecha.weekday() == 6:
+            flash("Domingo no se registra asistencia ❌", "warning")
+            return redirect("/asistencia_admin")
+
+        hora_str = request.form.get("hora")
+
+        try:
+            hora_ingreso = datetime.strptime(hora_str, "%H:%M").time()
+        except:
+            hora_ingreso = datetime.strptime(hora_str, "%H:%M:%S").time()
+
+        # validar si ya existe
+        existe = Asistencia.query.filter_by(
+            trabajadora_id=trabajadora_id,
+            fecha=fecha
+        ).first()
+
+        if existe:
+            flash("Ya existe asistencia para ese día ❌", "danger")
+            return redirect("/asistencia_admin")
+
+        t = Trabajadora.query.get(trabajadora_id)
+
+        # horario
+        if fecha.weekday() == 5:
+            hora_oficial = t.hora_sabado
+        else:
+            hora_oficial = t.hora_semana
+
+        dt_real = datetime.combine(fecha, hora_ingreso)
+        dt_oficial = datetime.combine(fecha, hora_oficial)
+
+        minutos = int((dt_real - dt_oficial).total_seconds()/60)
+        minutos_tarde = max(0, minutos - 10)
+
+        bloques = math.ceil(minutos_tarde / 10) if minutos_tarde > 0 else 0
+        penalidad = bloques * 5
+
+        nueva = Asistencia(
+            fecha=fecha,
+            hora_ingreso=hora_ingreso,
+            minutos_tarde=minutos_tarde,
+            penalidad=penalidad,
+            trabajadora_id=trabajadora_id
+        )
+
+        db.session.add(nueva)
+        db.session.commit()
+
+        flash("Asistencia registrada manualmente ✅", "success")
+
+        return redirect("/asistencia_admin")
 
     # ================= LISTADO =================
 
