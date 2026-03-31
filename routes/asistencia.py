@@ -183,13 +183,31 @@ def asistencia_admin():
 
     for f in fechas:
 
-        # filtro quincena
-        if quincena == "1" and f.day > 15:
-            continue
-        if quincena == "2" and f.day < 16:
-            continue
-
         faltas_tabla[f] = {}
+
+        # validar si entra en quincena
+        en_rango = True
+
+        if quincena == "1" and f.day > 15:
+            en_rango = False
+        if quincena == "2" and f.day < 16:
+            en_rango = False
+
+        for t in trabajadoras:
+
+            # si no está en rango → no mostrar ❌
+            if not en_rango:
+                faltas_tabla[f][t.nombre] = False
+                continue
+
+            # filtro trabajadora
+            if trabajadora_id and str(t.id) != str(trabajadora_id):
+                faltas_tabla[f][t.nombre] = False
+                continue
+
+            key = (t.id, f)
+
+            faltas_tabla[f][t.nombre] = key not in asistencias_map
 
         for t in trabajadoras:
 
