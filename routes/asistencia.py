@@ -183,13 +183,14 @@ def asistencia_admin():
 
     for f in fechas:
 
-        # 🚫 ignorar domingos
-        if f.weekday() == 6:
-            continue
-
         faltas_tabla[f] = {}
 
         for t in trabajadoras:
+
+            # 🚫 domingo → nunca marcar falta
+            if f.weekday() == 6:
+                faltas_tabla[f][t.nombre] = False
+                continue
 
             key = (t.id, f)
 
