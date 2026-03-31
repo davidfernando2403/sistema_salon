@@ -117,9 +117,6 @@ def index():
         trabajadoras=trabajadoras,
         servicios=servicios
     )
-
-from flask import flash, redirect, request
-
     
 @app.route("/login", methods=["GET","POST"])
 def login():
@@ -188,6 +185,3 @@ def comisiones():
         })
 
     return {"resultado": resultado}
-
-from sqlalchemy import extract, func
-from datetime import datetime
