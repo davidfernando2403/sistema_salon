@@ -76,7 +76,9 @@ from routes.reportes import reportes_bp
 from routes.graficos import graficos_bp
 from routes.boletas import boletas_bp
 from routes.comisiones import comisiones_bp
+from routes.auth import auth_bp
 
+app.register_blueprint(auth_bp)
 app.register_blueprint(comisiones_bp)
 app.register_blueprint(boletas_bp)
 app.register_blueprint(graficos_bp)
@@ -118,70 +120,3 @@ def index():
         servicios=servicios
     )
     
-@app.route("/login", methods=["GET","POST"])
-def login():
-
-    if request.method == "POST":
-
-        user = Usuario.query.filter_by(
-            username=request.form["username"],
-            password=request.form["password"]
-        ).first()
-
-        if user:
-            session["user_id"] = user.id
-            session["rol"] = user.rol
-            return redirect("/")
-
-    return render_template("login.html")
-
-@app.route("/logout")
-def logout():
-    session.clear()
-    return redirect("/login")
-
-@app.route('/comisiones')
-def comisiones():
-    desde = request.args.get("desde")
-    hasta = request.args.get("hasta")
-
-    if not desde or not hasta:
-        return "Usa ?desde=2026-01-01&hasta=2026-01-15"
-
-    desde = datetime.strptime(desde, "%Y-%m-%d")
-    hasta = datetime.strptime(hasta, "%Y-%m-%d")
-
-    resultado = []
-
-    trabajadoras = trabajadoras_activas()
-
-    for t in trabajadoras:
-        ventas = Venta.query.filter(
-            Venta.trabajadora_id == t.id,
-            Venta.fecha >= desde,
-            Venta.fecha <= hasta
-        ).all()
-
-        total = sum(v.precio for v in ventas)
-
-        comision_total = 0
-
-        if t.tipo_pago == "porcentaje":
-            comision_total = total * (t.comision / 100)
-
-        elif t.tipo_pago == "meta":
-            if total >= t.meta_2:
-                comision_total = total * (t.comision_meta_2 / 100)
-            elif total >= t.meta_1:
-                comision_total = total * (t.comision_meta_1 / 100)
-
-        pago = t.sueldo_base + comision_total
-
-        resultado.append({
-            "nombre": t.nombre,
-            "ventas": total,
-            "comision": comision_total,
-            "pago": pago
-        })
-
-    return {"resultado": resultado}
