@@ -141,10 +141,26 @@ def asistencia_admin():
         anio = hoy.year
         mes = hoy.month
 
-    registros = Asistencia.query.filter(
-        extract('year', Asistencia.fecha)==anio,
-        extract('month', Asistencia.fecha)==mes
-    ).all()
+    trabajadora_id = request.args.get("trabajadora")
+    quincena = request.args.get("quincena")
+
+    query = Asistencia.query.filter(
+        extract('year', Asistencia.fecha) == anio,
+        extract('month', Asistencia.fecha) == mes
+    )
+
+    # ================= FILTRO TRABAJADORA =================
+    if trabajadora_id and trabajadora_id != "todas":
+        query = query.filter(Asistencia.trabajadora_id == int(trabajadora_id))
+
+    # ================= FILTRO QUINCENA =================
+    if quincena == "1":
+        query = query.filter(extract('day', Asistencia.fecha) <= 15)
+
+    elif quincena == "2":
+        query = query.filter(extract('day', Asistencia.fecha) >= 16)
+
+    registros = query.order_by(Asistencia.fecha.desc()).all()
 
     total_penalidad = sum(r.penalidad for r in registros)
 
@@ -155,5 +171,8 @@ def asistencia_admin():
         registros=registros,
         trabajadoras=trabajadoras,
         total_penalidad=total_penalidad,
-        t_edit=t_edit
+        t_edit=t_edit,
+        trabajadora_id=trabajadora_id,
+        mes_sel=f"{anio}-{str(mes).zfill(2)}",
+        quincena=quincena
     )
