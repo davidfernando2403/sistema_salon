@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, request, redirect, session, flash
 from models import Trabajadora, Asistencia
 from extensions import db
 from utils.time import ahora_peru, hoy_peru
-import math
+from services.asistencia_service import calcular_penalidad
 
 asistencia_bp = Blueprint("asistencia", __name__)
 
@@ -47,11 +47,7 @@ def marcar():
         dt_real = datetime.combine(fecha, hora_ingreso)
         dt_oficial = datetime.combine(fecha, hora_oficial)
 
-        minutos = int((dt_real - dt_oficial).total_seconds()/60)
-        minutos_tarde = max(0, minutos - 10)
-
-        bloques = math.ceil(minutos_tarde / 10) if minutos_tarde > 0 else 0
-        penalidad = bloques * 5
+        minutos_tarde, penalidad = calcular_penalidad(dt_real, dt_oficial)
 
         nueva = Asistencia(
             fecha=fecha,
@@ -105,11 +101,7 @@ def asistencia_admin():
         dt_real = datetime.combine(a.fecha, a.hora_ingreso)
         dt_oficial = datetime.combine(a.fecha, hora_oficial)
 
-        minutos = int((dt_real - dt_oficial).total_seconds()/60)
-        minutos_tarde = max(0, minutos - 10)
-
-        bloques = math.ceil(minutos_tarde / 10) if minutos_tarde > 0 else 0
-        penalidad = bloques * 5
+        minutos_tarde, penalidad = calcular_penalidad(dt_real, dt_oficial)
 
         a.minutos_tarde = minutos_tarde
         a.penalidad = penalidad
@@ -169,11 +161,7 @@ def asistencia_admin():
         dt_real = datetime.combine(fecha, hora_ingreso)
         dt_oficial = datetime.combine(fecha, hora_oficial)
 
-        minutos = int((dt_real - dt_oficial).total_seconds()/60)
-        minutos_tarde = max(0, minutos - 10)
-
-        bloques = math.ceil(minutos_tarde / 10) if minutos_tarde > 0 else 0
-        penalidad = bloques * 5
+        minutos_tarde, penalidad = calcular_penalidad(dt_real, dt_oficial)
 
         nueva = Asistencia(
             fecha=fecha,
