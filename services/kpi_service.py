@@ -29,8 +29,12 @@ def obtener_kpis(fecha_inicio=None, fecha_fin=None, trabajadora_id=None):
     # ================= SUMAR VENTAS =================
     for v in ventas:
         nombre = v.trabajadora.nombre
-        resumen[nombre] += v.precio
 
+        if nombre not in resumen:
+            resumen[nombre] = 0  # 👈 evita KeyError (trabajadora inactiva)
+
+        resumen[nombre] += v.precio
+        
     # ================= TOTAL =================
     total = round(sum(resumen.values()), 2)
 
