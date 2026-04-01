@@ -1,3 +1,5 @@
+from datetime import datetime, time
+
 from flask import Blueprint, render_template, request, redirect, session, flash
 from models import Venta, Servicio
 from extensions import db
@@ -245,6 +247,7 @@ def ventas_historial():
     elif fecha_inicio and fecha_fin:
         fi = datetime.strptime(fecha_inicio, "%Y-%m-%d")
         ff = datetime.strptime(fecha_fin, "%Y-%m-%d")
+        ff = datetime.combine(ff, time.max)
 
         ventas = ventas.filter(
             Venta.fecha >= fi,
@@ -317,6 +320,8 @@ def exportar_excel():
 
     elif fecha_inicio and fecha_fin:
         fi = datetime.strptime(fecha_inicio, "%Y-%m-%d")
+        ff = datetime.strptime(fecha_fin, "%Y-%m-%d")
+        
         ff = datetime.strptime(fecha_fin, "%Y-%m-%d")
 
         ventas = ventas.filter(Venta.fecha >= fi, Venta.fecha <= ff)
