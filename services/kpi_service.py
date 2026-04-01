@@ -1,17 +1,18 @@
-from sqlalchemy import func, extract
-from sqlalchemy.orm import joinedload
 from extensions import db
-
 
 
 def obtener_kpis(fecha_inicio=None, fecha_fin=None, trabajadora_id=None):
 
-    # 🔥 IMPORTS LOCALES (rompe el ciclo)
+    # imports locales
     from app import Venta, Trabajadora
-
     from sqlalchemy.orm import joinedload
-    from sqlalchemy import func
 
+    # ================= BASE: TODAS LAS TRABAJADORAS =================
+    trabajadoras = Trabajadora.query.filter_by(activo=True).all()
+
+    resumen = {t.nombre: 0 for t in trabajadoras}
+
+    # ================= QUERY VENTAS =================
     query = Venta.query.options(joinedload(Venta.trabajadora))
 
     if fecha_inicio:
@@ -25,35 +26,43 @@ def obtener_kpis(fecha_inicio=None, fecha_fin=None, trabajadora_id=None):
 
     ventas = query.all()
 
-    total = round(sum(v.precio for v in ventas), 2)
-
-    resumen = {}
+    # ================= SUMAR VENTAS =================
     for v in ventas:
         nombre = v.trabajadora.nombre
-        resumen[nombre] = resumen.get(nombre, 0) + v.precio
+        resumen[nombre] += v.precio
 
+    # ================= TOTAL =================
+    total = round(sum(resumen.values()), 2)
+
+    # ================= COMISIONES =================
     comisiones = {}
 
-    for nombre, total_v in resumen.items():
-        t = Trabajadora.query.filter_by(nombre=nombre).first()
+    for t in trabajadoras:
+        nombre = t.nombre
+        total_v = resumen[nombre]
 
         com = 0
-        if t:
-            if t.tipo_pago == "porcentaje":
-                com = total_v * (t.comision / 100)
-            elif t.tipo_pago == "meta":
-                if total_v >= t.meta_2:
-                    com = total_v * (t.comision_meta_2 / 100)
-                elif total_v >= t.meta_1:
-                    com = total_v * (t.comision_meta_1 / 100)
+
+        if t.tipo_pago == "porcentaje":
+            com = total_v * (t.comision / 100)
+
+        elif t.tipo_pago == "meta":
+            if total_v >= t.meta_2:
+                com = total_v * (t.comision_meta_2 / 100)
+            elif total_v >= t.meta_1:
+                com = total_v * (t.comision_meta_1 / 100)
 
         comisiones[nombre] = round(com, 2)
 
-    ranking = sorted(resumen.items(), key=lambda x: x[1], reverse=True)
+    # ================= ORDENAR =================
+    resumen_ordenado = dict(sorted(resumen.items(), key=lambda x: x[1], reverse=True))
+    comisiones_ordenadas = dict(sorted(comisiones.items(), key=lambda x: x[1], reverse=True))
+
+    ranking = list(resumen_ordenado.items())
 
     return {
         "total_general": total,
-        "resumen": resumen,
-        "comisiones": comisiones,
+        "resumen": resumen_ordenado,
+        "comisiones": comisiones_ordenadas,
         "ranking": ranking
     }
