@@ -4,20 +4,20 @@ from datetime import timedelta
 import math
 
 def trabajadoras_activas():
-    from app import Trabajadora
+    from models import Trabajadora
 
     return Trabajadora.query.filter_by(activo=True)\
         .order_by(Trabajadora.nombre)\
         .all()
 
 def servicios_ordenados():
-    from app import Servicio
+    from models import Servicio
 
     return Servicio.query.order_by(Servicio.nombre.asc()).all()
 
 def calcular_boleta(trabajadora, fecha_inicio, fecha_fin):
 
-    from app import Venta, Asistencia
+    from models import Venta, Asistencia
     from extensions import db
     from datetime import timedelta
 

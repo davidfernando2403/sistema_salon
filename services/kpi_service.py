@@ -4,7 +4,7 @@ from extensions import db
 def obtener_kpis(fecha_inicio=None, fecha_fin=None, trabajadora_id=None):
 
     # imports locales
-    from app import Venta, Trabajadora
+    from models import Venta, Trabajadora
     from sqlalchemy.orm import joinedload
 
     # ================= BASE: TODAS LAS TRABAJADORAS =================

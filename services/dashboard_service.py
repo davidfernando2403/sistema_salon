@@ -1,6 +1,6 @@
 def obtener_ventas_hoy(hoy_date):
 
-    from app import Venta, Trabajadora
+    from models import Venta, Trabajadora
     from extensions import db
     from sqlalchemy import func
 

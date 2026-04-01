@@ -1,6 +1,6 @@
 def obtener_filtros_reportes(data):
 
-    from app import Venta, Trabajadora
+    from models import Venta, Trabajadora
     from extensions import db
     from datetime import datetime, timedelta
     from sqlalchemy import extract
