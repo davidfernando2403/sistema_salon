@@ -49,15 +49,18 @@ def dashboard():
     ).scalar()
 
     # ================= QUINCENA =================
-    from datetime import datetime
+    from datetime import datetime, time
+    import calendar
 
     if hoy.day <= 15:
-        inicio = datetime(hoy.year, hoy.month, 1)
-        fin = datetime(hoy.year, hoy.month, 15)
+        inicio = datetime(hoy.year, hoy.month, 1, 0, 0, 0)
+        fin = datetime(hoy.year, hoy.month, 15, 23, 59, 59)
         titulo_quincena = "1–15"
     else:
-        inicio = datetime(hoy.year, hoy.month, 16)
-        fin = datetime(hoy.year, hoy.month, 31)
+        ultimo_dia = calendar.monthrange(hoy.year, hoy.month)[1]
+
+        inicio = datetime(hoy.year, hoy.month, 16, 0, 0, 0)
+        fin = datetime(hoy.year, hoy.month, ultimo_dia, 23, 59, 59)
         titulo_quincena = "16–fin de mes"
 
     # ================= KPIs =================
