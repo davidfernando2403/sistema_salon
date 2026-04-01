@@ -59,11 +59,28 @@
        value="{{ q or '' }}">
 </div>
 
-<div class="col-md-3">
+<div class="col-md-2">
 <input type="date"
        name="fecha"
        class="form-control"
-       value="{{ fecha or '' }}">
+       value="{{ fecha or '' }}"
+       title="Fecha exacta">
+</div>
+
+<div class="col-md-2">
+<input type="date"
+       name="fecha_inicio"
+       class="form-control"
+       value="{{ fecha_inicio or '' }}"
+       title="Desde">
+</div>
+
+<div class="col-md-2">
+<input type="date"
+       name="fecha_fin"
+       class="form-control"
+       value="{{ fecha_fin or '' }}"
+       title="Hasta">
 </div>
 
 <div class="col-md-3 d-flex gap-2">
@@ -72,6 +89,18 @@
 </div>
 
 </form>
+<div class="mb-3">
+    <a href="{{ url_for('ventas.exportar_excel',
+        campo=campo,
+        q=q,
+        fecha=fecha,
+        fecha_inicio=fecha_inicio,
+        fecha_fin=fecha_fin
+    ) }}"
+       class="btn btn-success">
+        📥 Exportar Excel
+    </a>
+</div>
 
 <!-- ================= RESUMEN ================= -->
 
@@ -91,6 +120,8 @@
 <input type="hidden" name="campo" value="{{ campo }}">
 <input type="hidden" name="q" value="{{ q }}">
 <input type="hidden" name="fecha" value="{{ fecha }}">
+<input type="hidden" name="fecha_inicio" value="{{ fecha_inicio }}">
+<input type="hidden" name="fecha_fin" value="{{ fecha_fin }}">
 
 <label>Mostrar:</label>
 
@@ -154,11 +185,11 @@ registros
 {% if ventas.has_prev %}
 <a class="btn btn-outline-primary me-2"
    href="{{ url_for('ventas.ventas_historial',
-       page=ventas.prev_num,
-       campo=campo,
-       q=q,
-       fecha=fecha,
-       per_page=per_page) }}">
+    page=ventas.prev_num,
+    campo=campo,
+    q=q,
+    fecha=fecha,
+    per_page=per_page) }}">
 Anterior
 </a>
 {% endif %}
@@ -170,11 +201,11 @@ Página {{ ventas.page }} de {{ ventas.pages }}
 {% if ventas.has_next %}
 <a class="btn btn-outline-primary ms-2"
    href="{{ url_for('ventas.ventas_historial',
-       page=ventas.next_num,
-       campo=campo,
-       q=q,
-       fecha=fecha,
-       per_page=per_page) }}">
+    page=ventas.prev_num,
+    campo=campo,
+    q=q,
+    fecha=fecha,
+    per_page=per_page) }}">
 Siguiente
 </a>
 {% endif %}

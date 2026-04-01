@@ -135,6 +135,8 @@ def ventas():
         fecha=fecha,
         per_page=per_page
     )
+
+# ================= EDITAR VENTA =================
     
 @ventas_bp.route("/ventas/editar/<int:id>", methods=["POST"])
 def editar_venta(id):
@@ -185,12 +187,16 @@ def eliminar_venta(id):
 
     return redirect("/ventas")
 
+# ================= HISTORIAL VENTAS =================
+
 @ventas_bp.route("/ventas/historial")
 def ventas_historial():
 
     campo = request.args.get("campo")
     q = request.args.get("q")
     fecha = request.args.get("fecha")
+    fecha_inicio = request.args.get("fecha_inicio")
+    fecha_fin = request.args.get("fecha_fin")
 
     page = request.args.get("page", 1, type=int)
     per_page = request.args.get("per_page", 10, type=int)
@@ -230,9 +236,20 @@ def ventas_historial():
                 Servicio.nombre.ilike(f"%{q}%")
             )
 
+    # ================= FILTRO FECHAS =================
+
     if fecha and fecha != "None":
         fecha_dt = datetime.strptime(fecha, "%Y-%m-%d").date()
         ventas = ventas.filter(func.date(Venta.fecha) == fecha_dt)
+
+    elif fecha_inicio and fecha_fin:
+        fi = datetime.strptime(fecha_inicio, "%Y-%m-%d")
+        ff = datetime.strptime(fecha_fin, "%Y-%m-%d")
+
+        ventas = ventas.filter(
+            Venta.fecha >= fi,
+            Venta.fecha <= ff
+        )
 
     total_ventas = ventas.with_entities(
         func.coalesce(func.sum(Venta.precio), 0)
@@ -253,5 +270,84 @@ def ventas_historial():
         fecha=fecha,
         per_page=per_page,
         total_ventas=total_ventas,
-        cantidad=cantidad
+        cantidad=cantidad,
+        fecha_inicio=fecha_inicio,
+        fecha_fin=fecha_fin
+    )
+
+# ================= EXPORTAR EXCEL =================
+
+@ventas_bp.route("/ventas/exportar")
+def exportar_excel():
+
+    from flask import request, send_file
+    import pandas as pd
+    import io
+    from datetime import datetime
+
+    ventas = Venta.query
+
+    campo = request.args.get("campo")
+    q = request.args.get("q")
+    fecha = request.args.get("fecha")
+    fecha_inicio = request.args.get("fecha_inicio")
+    fecha_fin = request.args.get("fecha_fin")
+
+    # ================= FILTROS (MISMO QUE HISTORIAL) =================
+
+    if campo and q:
+
+        if campo == "cliente":
+            ventas = ventas.filter(Venta.cliente.ilike(f"%{q}%"))
+
+        elif campo == "trabajadora":
+            from models import Trabajadora
+            ventas = ventas.join(Trabajadora).filter(
+                Trabajadora.nombre.ilike(f"%{q}%")
+            )
+
+        elif campo == "servicio":
+            ventas = ventas.join(Servicio).filter(
+                Servicio.nombre.ilike(f"%{q}%")
+            )
+
+    if fecha and fecha != "None":
+        fecha_dt = datetime.strptime(fecha, "%Y-%m-%d").date()
+        ventas = ventas.filter(func.date(Venta.fecha) == fecha_dt)
+
+    elif fecha_inicio and fecha_fin:
+        fi = datetime.strptime(fecha_inicio, "%Y-%m-%d")
+        ff = datetime.strptime(fecha_fin, "%Y-%m-%d")
+
+        ventas = ventas.filter(Venta.fecha >= fi, Venta.fecha <= ff)
+
+    ventas = ventas.order_by(Venta.fecha.desc()).all()
+
+    # ================= DATA =================
+
+    data = []
+
+    for v in ventas:
+        data.append({
+            "Fecha": v.fecha.strftime("%d/%m/%Y"),
+            "Servicio": v.servicio.nombre if v.servicio else "",
+            "Cliente": v.cliente,
+            "Precio": v.precio,
+            "Trabajadora": v.trabajadora.nombre if v.trabajadora else "",
+            "Pago": v.medio_pago,
+            "DNI": v.dni,
+            "Telefono": v.telefono,
+            "Observaciones": v.observaciones
+        })
+
+    df = pd.DataFrame(data)
+
+    output = io.BytesIO()
+    df.to_excel(output, index=False)
+    output.seek(0)
+
+    return send_file(
+        output,
+        download_name="ventas_filtradas.xlsx",
+        as_attachment=True
     )
