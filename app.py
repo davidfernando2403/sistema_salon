@@ -100,23 +100,3 @@ from sqlalchemy.orm import joinedload
 from datetime import date, timedelta
 from sqlalchemy import extract
 import math
-
-# -------- RUTAS --------
-
-@app.route("/")
-def index():
-
-    if "user_id" not in session:
-        return redirect("/login")
-
-    ventas = Venta.query.all()
-    trabajadoras = trabajadoras_activas()
-    servicios = Servicio.query.order_by(Servicio.nombre.asc()).all()
-
-    return render_template(
-        "index.html",
-        ventas=ventas,
-        trabajadoras=trabajadoras,
-        servicios=servicios
-    )
-    
