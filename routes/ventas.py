@@ -322,7 +322,7 @@ def exportar_excel():
         fi = datetime.strptime(fecha_inicio, "%Y-%m-%d")
         ff = datetime.strptime(fecha_fin, "%Y-%m-%d")
         
-        ff = datetime.strptime(fecha_fin, "%Y-%m-%d")
+        ff = datetime.combine(ff, time.max)
 
         ventas = ventas.filter(Venta.fecha >= fi, Venta.fecha <= ff)
 
