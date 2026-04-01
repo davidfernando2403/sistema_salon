@@ -1,40 +1,7 @@
 # ================= IMPORTS PRINCIPALES =================
 
-from flask import Flask, render_template, request, redirect, session, url_for, flash
+from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-
-# ================= UTILIDADES FECHA =================
-
-from datetime import datetime, date
-from zoneinfo import ZoneInfo
-from utils.time import ahora_peru, hoy_peru  # funciones centralizadas (evita circular imports)
-
-# ================= SQL / QUERIES =================
-
-from sqlalchemy import func, extract
-
-# ================= SERVICES (LÓGICA DE NEGOCIO) =================
-
-from services.kpi_service import obtener_kpis
-from services.core_service import (
-    trabajadoras_activas,
-    servicios_ordenados,
-    calcular_boleta
-)
-from services.dashboard_service import obtener_ventas_hoy
-
-# ================= MODELOS =================
-
-from models import (
-    Trabajadora,
-    Venta,
-    Servicio,
-    Usuario,
-    Asistencia,
-    Boleta,
-    Factura,
-    BoletaTrabajadora
-)
 
 # ================= CONFIGURACIÓN APP =================
 
@@ -58,10 +25,6 @@ if db_url.startswith("postgres://"):
 app.config["SQLALCHEMY_DATABASE_URI"] = db_url  # configurar conexión DB
 
 db.init_app(app)  # enlazar DB con Flask
-
-# ================= TIMEZONE =================
-
-PERU_TZ = ZoneInfo("America/Lima")  # zona horaria del sistema
 
 # ================= BLUEPRINTS =================
 
@@ -92,13 +55,3 @@ app.register_blueprint(asistencia_bp)
 app.register_blueprint(trabajadoras_bp)
 app.register_blueprint(dashboard_bp)  # registrar rutas en la app
 app.register_blueprint(ventas_bp)  # registrar rutas en la app
-
-
-
-# ================= 
-
-from sqlalchemy import func, extract
-from sqlalchemy.orm import joinedload
-from datetime import date, timedelta
-from sqlalchemy import extract
-import math
