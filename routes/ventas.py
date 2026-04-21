@@ -62,7 +62,7 @@ def ventas_guardar():
         db.session.flush()  # 👈 genera el ID sin hacer commit
 
         # ================= CAJA AUTOMÁTICA =================
-        if nueva.medio_pago == "efectivo":
+        if nueva.medio_pago and nueva.medio_pago.strip().lower() == "efectivo":
             movimiento = CajaMovimiento(
                 tipo="ingreso",
                 monto=nueva.precio,
