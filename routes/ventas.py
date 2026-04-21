@@ -170,6 +170,11 @@ def editar_venta(id):
         if fecha_form:
             v.fecha = datetime.strptime(fecha_form, "%Y-%m-%d")
 
+        # ================= GUARDAR VALORES ANTERIORES =================
+        medio_pago_anterior = v.medio_pago
+        monto_anterior = v.precio
+
+        # ================= NUEVOS VALORES =================
         v.servicio_id = int(request.form["servicio"])
         v.trabajadora_id = int(request.form["trabajadora"])
         v.precio = float(request.form["precio"])
@@ -179,6 +184,36 @@ def editar_venta(id):
         v.dni = request.form.get("dni") or None
         v.telefono = request.form.get("telefono") or None
         v.observaciones = request.form.get("observaciones")
+
+        # ================= BUSCAR MOVIMIENTO EXISTENTE =================
+        movimiento = CajaMovimiento.query.filter_by(
+            venta_id=v.id
+        ).first()
+
+        es_efectivo_antes = medio_pago_anterior and medio_pago_anterior.strip().lower() == "efectivo"
+        es_efectivo_ahora = v.medio_pago and v.medio_pago.strip().lower() == "efectivo"
+
+        # ================= CASO 1: ERA EFECTIVO Y SIGUE SIENDO =================
+        if es_efectivo_antes and es_efectivo_ahora:
+            if movimiento:
+                movimiento.monto = v.precio
+                movimiento.detalle = f"Venta #{v.id}"
+
+        # ================= CASO 2: ERA EFECTIVO Y YA NO =================
+        elif es_efectivo_antes and not es_efectivo_ahora:
+            if movimiento:
+                db.session.delete(movimiento)
+
+        # ================= CASO 3: NO ERA EFECTIVO Y AHORA SÍ =================
+        elif not es_efectivo_antes and es_efectivo_ahora:
+            nuevo_mov = CajaMovimiento(
+                tipo="ingreso",
+                monto=v.precio,
+                detalle=f"Venta #{v.id}",
+                origen="venta",
+                venta_id=v.id
+            )
+            db.session.add(nuevo_mov)
 
         db.session.commit()
         flash("Venta actualizada ✅", "success")
@@ -190,6 +225,8 @@ def editar_venta(id):
 
     return redirect("/ventas")
 
+# ================= ELIMINAR VENTA =================
+
 @ventas_bp.route("/ventas/eliminar/<int:id>")
 def eliminar_venta(id):
 
@@ -198,6 +235,15 @@ def eliminar_venta(id):
 
     v = Venta.query.get(id)
 
+    # ================= ELIMINAR MOVIMIENTO DE CAJA =================
+    movimiento = CajaMovimiento.query.filter_by(
+        venta_id=v.id
+    ).first()
+
+    if movimiento:
+        db.session.delete(movimiento)
+
+    # ================= ELIMINAR VENTA =================
     db.session.delete(v)
     db.session.commit()
 
