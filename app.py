@@ -41,7 +41,9 @@ from routes.boletas import boletas_bp
 from routes.comisiones import comisiones_bp
 from routes.auth import auth_bp
 from routes.main_routes import main_bp
+from routes.caja import caja_bp
 
+app.register_blueprint(caja_bp)
 app.register_blueprint(main_bp)
 app.register_blueprint(auth_bp)
 app.register_blueprint(comisiones_bp)
