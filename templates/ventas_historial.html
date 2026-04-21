@@ -189,6 +189,8 @@ registros
     campo=campo,
     q=q,
     fecha=fecha,
+    fecha_inicio=fecha_inicio,
+    fecha_fin=fecha_fin,
     per_page=per_page) }}">
 Anterior
 </a>
@@ -201,10 +203,12 @@ Página {{ ventas.page }} de {{ ventas.pages }}
 {% if ventas.has_next %}
 <a class="btn btn-outline-primary ms-2"
    href="{{ url_for('ventas.ventas_historial',
-    page=ventas.prev_num,
+    page=ventas.next_num,
     campo=campo,
     q=q,
     fecha=fecha,
+    fecha_inicio=fecha_inicio,
+    fecha_fin=fecha_fin,
     per_page=per_page) }}">
 Siguiente
 </a>

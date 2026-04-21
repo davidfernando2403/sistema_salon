@@ -241,18 +241,24 @@ def ventas_historial():
     # ================= FILTRO FECHAS =================
 
     if fecha and fecha != "None":
-        fecha_dt = datetime.strptime(fecha, "%Y-%m-%d").date()
-        ventas = ventas.filter(func.date(Venta.fecha) == fecha_dt)
+        try:
+            fecha_dt = datetime.strptime(fecha, "%Y-%m-%d").date()
+            ventas = ventas.filter(func.date(Venta.fecha) == fecha_dt)
+        except:
+            pass
 
-    elif fecha_inicio and fecha_fin:
-        fi = datetime.strptime(fecha_inicio, "%Y-%m-%d")
-        ff = datetime.strptime(fecha_fin, "%Y-%m-%d")
-        ff = datetime.combine(ff, time.max)
+    elif fecha_inicio and fecha_fin and fecha_inicio != "None" and fecha_fin != "None":
+        try:
+            fi = datetime.strptime(fecha_inicio, "%Y-%m-%d")
+            ff = datetime.strptime(fecha_fin, "%Y-%m-%d")
+            ff = datetime.combine(ff, time.max)
 
-        ventas = ventas.filter(
-            Venta.fecha >= fi,
-            Venta.fecha <= ff
-        )
+            ventas = ventas.filter(
+                Venta.fecha >= fi,
+                Venta.fecha <= ff
+            )
+        except:
+            pass
 
     total_ventas = ventas.with_entities(
         func.coalesce(func.sum(Venta.precio), 0)
