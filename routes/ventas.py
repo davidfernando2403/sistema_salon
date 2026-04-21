@@ -5,6 +5,7 @@ from models import Venta, Servicio
 from extensions import db
 from utils.time import ahora_peru, hoy_peru
 from services.core_service import trabajadoras_activas
+from models.caja_movimiento import CajaMovimiento
 from sqlalchemy import func
 
 ventas_bp = Blueprint("ventas", __name__)
@@ -58,6 +59,19 @@ def ventas_guardar():
         )
 
         db.session.add(nueva)
+        db.session.flush()  # 👈 genera el ID sin hacer commit
+
+        # ================= CAJA AUTOMÁTICA =================
+        if nueva.medio_pago == "efectivo":
+            movimiento = CajaMovimiento(
+                tipo="ingreso",
+                monto=nueva.precio,
+                detalle=f"Venta #{nueva.id}",
+                origen="venta",
+                venta_id=nueva.id
+            )
+            db.session.add(movimiento)
+
         db.session.commit()
 
         flash("Venta registrada correctamente ✅", "ventas")
