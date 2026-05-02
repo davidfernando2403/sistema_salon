@@ -34,22 +34,30 @@ def reportes():
     # ================= FILTROS LEGACY =================
     filtros = obtener_filtros_reportes(request.args)
 
-    hoy = ahora_peru()
+    mes_kpi = request.args.get("mes_kpi")
+
+    # Si no selecciona nada → mes actual
+    if mes_kpi:
+        año, mes = map(int, mes_kpi.split("-"))
+    else:
+        hoy = ahora_peru()
+        año = hoy.year
+        mes = hoy.month
 
     # ================= BOLETAS =================
     total_boletas = db.session.query(
         func.coalesce(func.sum(Boleta.monto), 0)
     ).filter(
-        extract("year", Boleta.fecha) == hoy.year,
-        extract("month", Boleta.fecha) == hoy.month
+        extract("year", Boleta.fecha) == año,
+        extract("month", Boleta.fecha) == mes
     ).scalar()
 
     # ================= FACTURAS =================
     total_facturas = db.session.query(
         func.coalesce(func.sum(Factura.monto), 0)
     ).filter(
-        extract("year", Factura.fecha) == hoy.year,
-        extract("month", Factura.fecha) == hoy.month
+        extract("year", Factura.fecha) == año,
+        extract("month", Factura.fecha) == mes
     ).scalar()
 
     return render_template(
@@ -58,5 +66,6 @@ def reportes():
         **filtros,
         trabajadoras=trabajadoras_activas(),
         total_boletas=round(total_boletas, 2),
-        total_facturas=round(total_facturas, 2)
+        total_facturas=round(total_facturas, 2),
+        mes_kpi=mes_kpi   # 👈 NUEVO
     )

@@ -17,27 +17,43 @@
 
     <!-- ================= KPIs ================= -->
 
-    <div class="row mb-4">
+<div class="card mb-4">
+    <div class="card-body">
 
-        <div class="col-md-6">
-            <div class="card shadow-sm text-center">
-                <div class="card-body">
-                    <h6>💰 Boletas (mes actual)</h6>
-                    <h4 class="text-success">S/ {{ "%.2f"|format(total_boletas) }}</h4>
+        <h5>📊 Boletas y Facturas por mes</h5>
+
+        <form method="GET" action="{{ url_for('reportes.reportes') }}" class="row g-2">
+
+            <div class="col-md-6">
+                <input type="month" name="mes_kpi" value="{{ mes_kpi or '' }}" class="form-control">
+            </div>
+
+            <div class="col-md-6">
+                <button class="btn btn-primary w-100">Ver total</button>
+            </div>
+
+        </form>
+
+        {% if total_boletas is not none and total_facturas is not none %}
+        <div class="row mt-3">
+
+            <div class="col-md-6">
+                <div class="alert alert-success text-center">
+                    💰 Boletas: <strong>S/ {{ "%.2f"|format(total_boletas) }}</strong>
                 </div>
             </div>
-        </div>
 
-        <div class="col-md-6">
-            <div class="card shadow-sm text-center">
-                <div class="card-body">
-                    <h6>🧾 Facturas (mes actual)</h6>
-                    <h4 class="text-primary">S/ {{ "%.2f"|format(total_facturas) }}</h4>
+            <div class="col-md-6">
+                <div class="alert alert-primary text-center">
+                    🧾 Facturas: <strong>S/ {{ "%.2f"|format(total_facturas) }}</strong>
                 </div>
             </div>
+
         </div>
+        {% endif %}
 
     </div>
+</div>
 
     <!-- ================= FILTRO RANGO ================= -->
 
