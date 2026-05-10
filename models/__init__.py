@@ -6,3 +6,4 @@ from .asistencia import Asistencia
 from .boleta import Boleta, Factura
 from .boleta_trabajadora import BoletaTrabajadora
 from .caja_movimiento import CajaMovimiento
+from .configuracion_tardanza import ConfiguracionTardanza

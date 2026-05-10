@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, session, flash
-from models import Trabajadora, Asistencia
+from models import Trabajadora, Asistencia, ConfiguracionTardanza
 from extensions import db
 from utils.time import ahora_peru, hoy_peru
 from services.asistencia_service import calcular_penalidad
@@ -77,6 +77,42 @@ def asistencia_admin():
 
     accion = request.form.get("accion")
     edit_id = request.args.get("edit")
+
+    # ================= CONFIGURACION TARDANZA =================
+
+    if request.method == "POST" and accion == "config_tardanza":
+
+        fecha_inicio = datetime.strptime(
+            request.form["fecha_inicio"],
+            "%Y-%m-%d"
+        ).date()
+
+        tolerancia = int(request.form["tolerancia"])
+
+        descuento = float(request.form["descuento"])
+
+        # evitar fechas duplicadas
+        existe = ConfiguracionTardanza.query.filter_by(
+            fecha_inicio=fecha_inicio
+        ).first()
+
+        if existe:
+            flash("Ya existe configuración para esa fecha ❌", "danger")
+            return redirect("/asistencia_admin")
+
+        nueva = ConfiguracionTardanza(
+            fecha_inicio=fecha_inicio,
+            tolerancia=tolerancia,
+            descuento_por_minuto=descuento,
+            activo=True
+        )
+
+        db.session.add(nueva)
+        db.session.commit()
+
+        flash("Configuración guardada ✅", "success")
+
+        return redirect("/asistencia_admin")
 
     # ================= EDITAR =================
     if request.method == "POST" and accion == "editar":
@@ -185,6 +221,12 @@ def asistencia_admin():
 
     trabajadoras = Trabajadora.query.filter_by(activo=True).all()
     hoy = hoy_peru()
+    
+    configuraciones = (
+        ConfiguracionTardanza.query
+        .order_by(ConfiguracionTardanza.fecha_inicio.desc())
+        .all()
+    )
 
     if mes_sel:
         anio, mes = map(int, mes_sel.split("-"))
@@ -259,5 +301,6 @@ def asistencia_admin():
         mes_sel=f"{anio}-{str(mes).zfill(2)}",
         quincena=quincena,
         fechas=fechas,                # 👈 NUEVO
-        faltas_tabla=faltas_tabla     # 👈 NUEVO
+        faltas_tabla=faltas_tabla,     # 👈 NUEVO
+        configuraciones=configuraciones
     )
