@@ -2,10 +2,46 @@ from flask import Blueprint, render_template, request, redirect, session, flash
 from models import Trabajadora, Asistencia, ConfiguracionTardanza
 from extensions import db
 from utils.time import ahora_peru, hoy_peru
-from services.asistencia_service import calcular_penalidad
+from services.asistencia_service import (
+    calcular_penalidad,
+    obtener_configuracion
+)
 
 asistencia_bp = Blueprint("asistencia", __name__)
 
+def recalcular_asistencias_desde(fecha_inicio):
+
+    from datetime import datetime
+
+    asistencias = (
+        Asistencia.query
+        .filter(Asistencia.fecha >= fecha_inicio)
+        .all()
+    )
+
+    for a in asistencias:
+
+        trab = a.trabajadora
+
+        # horario oficial
+        if a.fecha.weekday() == 5:
+            hora_oficial = trab.hora_sabado
+        else:
+            hora_oficial = trab.hora_semana
+
+        dt_real = datetime.combine(a.fecha, a.hora_ingreso)
+        dt_oficial = datetime.combine(a.fecha, hora_oficial)
+
+        minutos_tarde, penalidad = calcular_penalidad(
+            dt_real,
+            dt_oficial
+        )
+
+        a.minutos_tarde = minutos_tarde
+        a.penalidad = penalidad
+
+    db.session.commit()
+    
 @asistencia_bp.route("/marcar", methods=["GET","POST"])
 def marcar():
 
@@ -110,7 +146,10 @@ def asistencia_admin():
         db.session.add(nueva)
         db.session.commit()
 
-        flash("Configuración guardada ✅", "success")
+        # recalcular asistencias
+        recalcular_asistencias_desde(fecha_inicio)
+
+        flash("Configuración guardada y asistencias recalculadas ✅", "success")
 
         return redirect("/asistencia_admin")
 
