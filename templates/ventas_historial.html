@@ -161,7 +161,9 @@ registros
 
 {% for v in ventas.items %}
 <tr>
-<td>{{ v.fecha.strftime('%d/%m/%Y') }}</td>
+<td class="text-nowrap">
+    {{ v.fecha.strftime('%d/%m/%Y %H:%M') }}
+</td>
 <td>{{ v.servicio.nombre }}</td>
 <td>{{ v.cliente }}</td>
 <td class="text-nowrap">S/ {{ "%.2f"|format(v.precio) }}</td>
